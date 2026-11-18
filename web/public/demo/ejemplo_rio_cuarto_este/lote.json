@@ -1,0 +1,339 @@
+{
+  "id": "ejemplo_rio_cuarto_este",
+  "nombre": "Lote Ejemplo Río Cuarto Este",
+  "localidad": "Entre Río Cuarto y Alejandro Roca, Córdoba",
+  "fuente_poligono": "EJEMPLO: polígono dibujado a mano sobre imagen satelital pública (Esri World Imagery) para la demo; NO es un lote de cliente ni tiene datos reales. Reemplazar por los polígonos reales.",
+  "area_ha": 52.9,
+  "centroide": [
+    -63.9816,
+    -33.29034
+  ],
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          -63.983788,
+          -33.286253
+        ],
+        [
+          -63.97775,
+          -33.287431
+        ],
+        [
+          -63.977716,
+          -33.2936
+        ],
+        [
+          -63.985734,
+          -33.2936
+        ],
+        [
+          -63.985734,
+          -33.290516
+        ],
+        [
+          -63.983788,
+          -33.286253
+        ]
+      ]
+    ]
+  },
+  "score": {
+    "valor": 81,
+    "version": "1.2.0",
+    "vigor_base": "ndvi",
+    "confianza": "media",
+    "campanias_con_ndvi": 9,
+    "campanias_total": 9,
+    "cobertura": 1.0,
+    "componentes_usados": [
+      "vigor_historico",
+      "estabilidad",
+      "riesgo_hidrico",
+      "suelo",
+      "rotacion_mani"
+    ],
+    "componentes_sin_dato": [],
+    "reponderado": false,
+    "motivo_sin_score": null,
+    "componentes": [
+      {
+        "clave": "vigor_historico",
+        "etiqueta": "Vigor histórico (NDVI)",
+        "valor": 0.78,
+        "peso": 0.35,
+        "peso_efectivo": 0.35
+      },
+      {
+        "clave": "estabilidad",
+        "etiqueta": "Estabilidad entre campañas",
+        "valor": 0.64,
+        "peso": 0.2,
+        "peso_efectivo": 0.2
+      },
+      {
+        "clave": "riesgo_hidrico",
+        "etiqueta": "Riesgo hídrico (anegamiento)",
+        "valor": 0.97,
+        "peso": 0.2,
+        "peso_efectivo": 0.2
+      },
+      {
+        "clave": "suelo",
+        "etiqueta": "Suelo",
+        "valor": 0.91,
+        "peso": 0.15,
+        "peso_efectivo": 0.15
+      },
+      {
+        "clave": "rotacion_mani",
+        "etiqueta": "Rotación de maní",
+        "valor": 0.75,
+        "peso": 0.1,
+        "peso_efectivo": 0.1
+      }
+    ]
+  },
+  "campanias": [
+    {
+      "campania": "2017/18",
+      "cultivo": null,
+      "cultivo_fuente": null,
+      "cultivo_cobertura": null,
+      "ndvi_max": 0.724,
+      "ndvi_medio": 0.479,
+      "ndvi_anomalia": -0.1,
+      "ndmi_medio": 0.136,
+      "evi_max": null,
+      "evi_medio": null,
+      "ndre_max": null,
+      "ndre_medio": null,
+      "obs_validas_px": null,
+      "pct_nubes": 28,
+      "n_escenas": 15,
+      "hueco_max_semanas": 3
+    },
+    {
+      "campania": "2018/19",
+      "cultivo": "mani",
+      "cultivo_fuente": "EJEMPLO",
+      "cultivo_cobertura": 0.81,
+      "ndvi_max": 0.813,
+      "ndvi_medio": 0.6,
+      "ndvi_anomalia": -0.011,
+      "ndmi_medio": 0.193,
+      "evi_max": null,
+      "evi_medio": null,
+      "ndre_max": null,
+      "ndre_medio": null,
+      "obs_validas_px": null,
+      "pct_nubes": 16,
+      "n_escenas": 22,
+      "hueco_max_semanas": 1
+    },
+    {
+      "campania": "2019/20",
+      "cultivo": "soja",
+      "cultivo_fuente": "EJEMPLO",
+      "cultivo_cobertura": 0.73,
+      "ndvi_max": 0.844,
+      "ndvi_medio": 0.656,
+      "ndvi_anomalia": 0.02,
+      "ndmi_medio": 0.202,
+      "evi_max": null,
+      "evi_medio": null,
+      "ndre_max": null,
+      "ndre_medio": null,
+      "obs_validas_px": null,
+      "pct_nubes": 38,
+      "n_escenas": 25,
+      "hueco_max_semanas": 0
+    },
+    {
+      "campania": "2020/21",
+      "cultivo": "maiz",
+      "cultivo_fuente": "EJEMPLO",
+      "cultivo_cobertura": 0.79,
+      "ndvi_max": 0.839,
+      "ndvi_medio": 0.631,
+      "ndvi_anomalia": 0.015,
+      "ndmi_medio": 0.219,
+      "evi_max": null,
+      "evi_medio": null,
+      "ndre_max": null,
+      "ndre_medio": null,
+      "obs_validas_px": null,
+      "pct_nubes": 26,
+      "n_escenas": 14,
+      "hueco_max_semanas": 3
+    },
+    {
+      "campania": "2021/22",
+      "cultivo": "soja",
+      "cultivo_fuente": "EJEMPLO",
+      "cultivo_cobertura": 0.73,
+      "ndvi_max": 0.856,
+      "ndvi_medio": 0.596,
+      "ndvi_anomalia": 0.032,
+      "ndmi_medio": 0.247,
+      "evi_max": null,
+      "evi_medio": null,
+      "ndre_max": null,
+      "ndre_medio": null,
+      "obs_validas_px": null,
+      "pct_nubes": 34,
+      "n_escenas": 26,
+      "hueco_max_semanas": 0
+    },
+    {
+      "campania": "2022/23",
+      "cultivo": "mixto",
+      "cultivo_fuente": "EJEMPLO",
+      "cultivo_cobertura": 0.52,
+      "ndvi_max": 0.679,
+      "ndvi_medio": 0.424,
+      "ndvi_anomalia": -0.145,
+      "ndmi_medio": 0.173,
+      "evi_max": null,
+      "evi_medio": null,
+      "ndre_max": null,
+      "ndre_medio": null,
+      "obs_validas_px": null,
+      "pct_nubes": 38,
+      "n_escenas": 19,
+      "hueco_max_semanas": 2
+    },
+    {
+      "campania": "2023/24",
+      "cultivo": "maiz",
+      "cultivo_fuente": "EJEMPLO",
+      "cultivo_cobertura": 0.88,
+      "ndvi_max": 0.878,
+      "ndvi_medio": 0.697,
+      "ndvi_anomalia": 0.054,
+      "ndmi_medio": 0.251,
+      "evi_max": null,
+      "evi_medio": null,
+      "ndre_max": null,
+      "ndre_medio": null,
+      "obs_validas_px": null,
+      "pct_nubes": 36,
+      "n_escenas": 16,
+      "hueco_max_semanas": 1
+    },
+    {
+      "campania": "2024/25",
+      "cultivo": "soja",
+      "cultivo_fuente": "EJEMPLO",
+      "cultivo_cobertura": 0.77,
+      "ndvi_max": 0.88,
+      "ndvi_medio": 0.625,
+      "ndvi_anomalia": 0.056,
+      "ndmi_medio": 0.249,
+      "evi_max": null,
+      "evi_medio": null,
+      "ndre_max": null,
+      "ndre_medio": null,
+      "obs_validas_px": null,
+      "pct_nubes": 36,
+      "n_escenas": 18,
+      "hueco_max_semanas": 1
+    },
+    {
+      "campania": "2025/26",
+      "cultivo": "maiz",
+      "cultivo_fuente": "EJEMPLO",
+      "cultivo_cobertura": 0.89,
+      "ndvi_max": 0.899,
+      "ndvi_medio": 0.662,
+      "ndvi_anomalia": 0.075,
+      "ndmi_medio": 0.267,
+      "evi_max": null,
+      "evi_medio": null,
+      "ndre_max": null,
+      "ndre_medio": null,
+      "obs_validas_px": null,
+      "pct_nubes": 20,
+      "n_escenas": 24,
+      "hueco_max_semanas": 0
+    }
+  ],
+  "rotacion": {
+    "ultimo_mani": "2018/19",
+    "campanias_desde_mani": 7,
+    "campanias_sin_mani_confirmadas": 3,
+    "veces_mani_ultimas_5": 0,
+    "campanias_sin_dato_ultimas_5": 1,
+    "campanias_con_dato_ultimas_5": 4,
+    "campanias_ventana": 5,
+    "cobertura_rotacion": 0.8,
+    "confianza_rotacion": "parcial",
+    "anios_recomendados": 4
+  },
+  "zonas": {
+    "alta_pct": 47,
+    "media_pct": 33,
+    "baja_pct": 20,
+    "png": "zonas.png",
+    "centros_ndvi": [
+      0.712,
+      0.786,
+      0.844
+    ]
+  },
+  "agua": {
+    "max_ha_anegadas": 0.3,
+    "fecha_max": "2021-04-23",
+    "frecuencia_pct": 0.7
+  },
+  "suelo": {
+    "arcilla_pct": 15.1,
+    "arena_pct": 65.4,
+    "carbono_org": 1.1,
+    "fuente": "SoilGrids (ejemplo)"
+  },
+  "clima": {
+    "pp_anual_mm": 856,
+    "fuente": "ERA5 (ejemplo)"
+  },
+  "imagenes": {
+    "ndvi_ultima": "ndvi_2025.png",
+    "rgb_ultima": "rgb_2025.png",
+    "overlay_rgb": "overlay_rgb.png",
+    "overlay_ndvi": "overlay_ndvi.png",
+    "overlay_ndmi": "overlay_ndmi.png",
+    "overlay_zonas": "overlay_zonas.png",
+    "campania_overlays": "2025/26",
+    "escalas": {
+      "ndvi": [
+        0.0,
+        1.0
+      ],
+      "ndmi": [
+        -0.2,
+        0.6
+      ]
+    },
+    "ndvi_campanias": "ndvi_campanias.png",
+    "fecha_rgb": "2026-02-15",
+    "bbox": [
+      -63.985734,
+      -33.2936,
+      -63.977716,
+      -33.286253
+    ]
+  },
+  "resumen_md": "resumen.md",
+  "resumen_fuente": "plantilla",
+  "pdf": "informe.pdf",
+  "generado": "2026-11-18T13:16:58-03:00",
+  "advertencias": [
+    "LOTE DE EJEMPLO – datos de ejemplo: polígono y números sintéticos generados por código.",
+    "Campaña 2017/18: sin mapa de cultivo disponible (cultivo = null).",
+    "Rotación de maní: calculada con datos parciales (4 de 5 campañas con dato de maní). Las campañas sin dato se tratan como posible maní: valor conservador.",
+    "Vigor calculado con NDVI: menos de 3 campañas con EVI (el NDVI se satura con canopeo cerrado)."
+  ],
+  "ejemplo": true,
+  "fuente_datos": "ejemplo"
+}

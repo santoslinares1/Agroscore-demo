@@ -1,0 +1,13 @@
+node_modules/
+web/dist/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+pipeline/out/
+.env
+*.key
+pipeline/out_*/
+# metadatos de publicación (versiones respaldadas, lock, staging, diario): fuera de lo que se sirve
+.publicacion/
+.publicacion-*/

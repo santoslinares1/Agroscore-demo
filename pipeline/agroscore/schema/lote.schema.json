@@ -1,0 +1,721 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agroscorelatam.com/schema/lote.schema.json",
+  "title": "AgroScore – lote.json",
+  "type": "object",
+  "required": [
+    "id",
+    "nombre",
+    "localidad",
+    "area_ha",
+    "centroide",
+    "geometry",
+    "score",
+    "campanias",
+    "rotacion",
+    "zonas",
+    "agua",
+    "suelo",
+    "clima",
+    "imagenes",
+    "resumen_md",
+    "pdf",
+    "generado",
+    "advertencias",
+    "ejemplo",
+    "fuente_datos"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "num01": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1
+    },
+    "ndvi": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": -1,
+      "maximum": 1
+    },
+    "pct": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 100
+    },
+    "fecha": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "campania": {
+      "type": "string",
+      "pattern": "^\\d{4}/\\d{2}$"
+    }
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_\\-]+$"
+    },
+    "nombre": {
+      "type": "string",
+      "minLength": 1
+    },
+    "localidad": {
+      "type": "string"
+    },
+    "fuente_poligono": {
+      "type": "string"
+    },
+    "area_ha": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "centroide": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "geometry": {
+      "type": "object",
+      "required": [
+        "type",
+        "coordinates"
+      ],
+      "properties": {
+        "type": {
+          "const": "Polygon"
+        },
+        "coordinates": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "array",
+            "minItems": 4,
+            "items": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      }
+    },
+    "score": {
+      "type": "object",
+      "required": [
+        "valor",
+        "version",
+        "componentes",
+        "cobertura",
+        "componentes_usados",
+        "reponderado",
+        "motivo_sin_score",
+        "vigor_base"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "valor": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100
+        },
+        "version": {
+          "type": "string"
+        },
+        "confianza": {
+          "enum": [
+            "alta",
+            "media",
+            "baja",
+            null
+          ],
+          "description": "null si no hay score total (ver motivo_sin_score)"
+        },
+        "componentes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "clave",
+              "valor",
+              "peso"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "clave": {
+                "enum": [
+                  "vigor_historico",
+                  "estabilidad",
+                  "riesgo_hidrico",
+                  "suelo",
+                  "rotacion_mani"
+                ]
+              },
+              "etiqueta": {
+                "type": "string"
+              },
+              "valor": {
+                "$ref": "#/$defs/num01"
+              },
+              "peso": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "peso_efectivo": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 1
+              }
+            }
+          }
+        },
+        "cobertura": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "suma de los pesos nominales de los componentes con dato"
+        },
+        "componentes_usados": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "vigor_historico",
+              "estabilidad",
+              "riesgo_hidrico",
+              "suelo",
+              "rotacion_mani"
+            ]
+          },
+          "description": "componentes que entraron al cálculo (vacío si valor es null)"
+        },
+        "componentes_sin_dato": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "vigor_historico",
+              "estabilidad",
+              "riesgo_hidrico",
+              "suelo",
+              "rotacion_mani"
+            ]
+          }
+        },
+        "reponderado": {
+          "type": "boolean",
+          "description": "true = faltaban componentes y se reescalaron los pesos de los demás (peso_efectivo)"
+        },
+        "motivo_sin_score": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "texto legible de por qué valor es null; null si hay score"
+        },
+        "vigor_base": {
+          "enum": [
+            "evi",
+            "combinado",
+            "ndvi",
+            null
+          ],
+          "description": "índice con que se calculó el vigor histórico (obligatorio: la web, el PDF y el narrador rotulan el vigor según este campo); null solo si no hay score"
+        },
+        "campanias_con_ndvi": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "campañas con NDVI máximo válido (entra en la confianza)"
+        },
+        "campanias_total": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "campañas de la serie"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "valor": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "valor"
+            ]
+          },
+          "then": {
+            "properties": {
+              "motivo_sin_score": {
+                "type": "string",
+                "minLength": 1
+              },
+              "componentes_usados": {
+                "maxItems": 0
+              },
+              "reponderado": {
+                "const": false
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "valor": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "valor"
+            ]
+          },
+          "then": {
+            "properties": {
+              "motivo_sin_score": {
+                "type": "null"
+              },
+              "vigor_base": {
+                "enum": [
+                  "evi",
+                  "combinado",
+                  "ndvi"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "campanias": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "campania",
+          "cultivo",
+          "cultivo_fuente",
+          "ndvi_max",
+          "ndvi_medio",
+          "ndvi_anomalia",
+          "ndmi_medio",
+          "pct_nubes"
+        ],
+        "properties": {
+          "campania": {
+            "$ref": "#/$defs/campania"
+          },
+          "cultivo": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cultivo_fuente": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cultivo_cobertura": {
+            "$ref": "#/$defs/num01"
+          },
+          "ndvi_max": {
+            "$ref": "#/$defs/ndvi"
+          },
+          "ndvi_medio": {
+            "$ref": "#/$defs/ndvi"
+          },
+          "ndvi_anomalia": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "ndmi_medio": {
+            "$ref": "#/$defs/ndvi"
+          },
+          "pct_nubes": {
+            "$ref": "#/$defs/pct"
+          },
+          "n_escenas": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "hueco_max_semanas": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "evi_max": {
+            "$ref": "#/$defs/ndvi"
+          },
+          "evi_medio": {
+            "$ref": "#/$defs/ndvi"
+          },
+          "ndre_max": {
+            "$ref": "#/$defs/ndvi"
+          },
+          "ndre_medio": {
+            "$ref": "#/$defs/ndvi"
+          },
+          "obs_validas_px": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "media espacial de observaciones S2 válidas (post-máscara) por píxel en la campaña"
+          }
+        }
+      }
+    },
+    "rotacion": {
+      "type": "object",
+      "required": [
+        "ultimo_mani",
+        "campanias_desde_mani",
+        "veces_mani_ultimas_5"
+      ],
+      "properties": {
+        "ultimo_mani": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/campania"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "campanias_desde_mani": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "veces_mani_ultimas_5": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5
+        },
+        "campanias_sin_dato_ultimas_5": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5
+        },
+        "campanias_con_dato_ultimas_5": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5
+        },
+        "campanias_ventana": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5
+        },
+        "campanias_sin_mani_confirmadas": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cobertura_rotacion": {
+          "$ref": "#/$defs/num01"
+        },
+        "confianza_rotacion": {
+          "enum": [
+            "completa",
+            "parcial",
+            "insuficiente"
+          ]
+        },
+        "anios_recomendados": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "zonas": {
+      "type": "object",
+      "required": [
+        "alta_pct",
+        "media_pct",
+        "baja_pct",
+        "png"
+      ],
+      "properties": {
+        "alta_pct": {
+          "$ref": "#/$defs/pct"
+        },
+        "media_pct": {
+          "$ref": "#/$defs/pct"
+        },
+        "baja_pct": {
+          "$ref": "#/$defs/pct"
+        },
+        "png": {
+          "type": "string"
+        },
+        "centros_ndvi": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "agua": {
+      "type": "object",
+      "required": [
+        "max_ha_anegadas",
+        "fecha_max",
+        "frecuencia_pct"
+      ],
+      "properties": {
+        "max_ha_anegadas": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "fecha_max": {
+          "$ref": "#/$defs/fecha"
+        },
+        "frecuencia_pct": {
+          "$ref": "#/$defs/pct"
+        },
+        "max_ha_s1_sin_confirmar": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "fecha_max_s1_sin_confirmar": {
+          "$ref": "#/$defs/fecha"
+        },
+        "n_escenas_s1": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "n_escenas_s1_con_optico": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "criterio": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "n_escenas_s1_marcadas": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "n_escenas_s1_marcadas_sin_optico": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "n_escenas_s1_confirmadas": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        }
+      }
+    },
+    "suelo": {
+      "type": "object",
+      "required": [
+        "arcilla_pct",
+        "arena_pct",
+        "carbono_org",
+        "fuente"
+      ],
+      "properties": {
+        "arcilla_pct": {
+          "$ref": "#/$defs/pct"
+        },
+        "arena_pct": {
+          "$ref": "#/$defs/pct"
+        },
+        "carbono_org": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "fuente": {
+          "type": "string"
+        }
+      }
+    },
+    "clima": {
+      "type": "object",
+      "required": [
+        "pp_anual_mm",
+        "fuente"
+      ],
+      "properties": {
+        "pp_anual_mm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "fuente": {
+          "type": "string"
+        }
+      }
+    },
+    "imagenes": {
+      "type": "object",
+      "required": [
+        "ndvi_ultima",
+        "rgb_ultima"
+      ],
+      "properties": {
+        "ndvi_ultima": {
+          "type": "string"
+        },
+        "rgb_ultima": {
+          "type": "string"
+        },
+        "overlay_rgb": {
+          "type": "string"
+        },
+        "ndvi_campanias": {
+          "type": "string"
+        },
+        "overlay_ndvi": {
+          "type": "string"
+        },
+        "overlay_ndmi": {
+          "type": "string"
+        },
+        "overlay_zonas": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "campania_overlays": {
+          "$ref": "#/$defs/campania"
+        },
+        "escalas": {
+          "type": "object",
+          "properties": {
+            "ndvi": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "ndmi": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 2,
+              "maxItems": 2
+            }
+          }
+        },
+        "fecha_rgb": {
+          "$ref": "#/$defs/fecha"
+        },
+        "bbox": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 4,
+          "maxItems": 4
+        }
+      }
+    },
+    "resumen_md": {
+      "type": "string"
+    },
+    "resumen_fuente": {
+      "enum": [
+        "claude",
+        "plantilla"
+      ]
+    },
+    "pdf": {
+      "type": "string"
+    },
+    "generado": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "advertencias": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ejemplo": {
+      "type": "boolean",
+      "description": "true = datos sintéticos de ejemplo; la UI y el PDF muestran el aviso"
+    },
+    "fuente_datos": {
+      "type": "string",
+      "description": "gee | ejemplo"
+    }
+  }
+}

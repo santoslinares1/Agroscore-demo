@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agroscorelatam.com/schema/index.schema.json",
+  "title": "AgroScore – index.json",
+  "type": "object",
+  "required": ["generado", "score_version", "ejemplo", "lotes"],
+  "properties": {
+    "generado": {"type": "string"},
+    "score_version": {"type": "string"},
+    "ejemplo": {"type": "boolean"},
+    "lotes": {"type": "array", "minItems": 1, "items": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "nombre", "localidad", "area_ha", "score", "centroide", "ejemplo"],
+      "properties": {
+        "id": {"type": "string"}, "nombre": {"type": "string"}, "localidad": {"type": "string"},
+        "area_ha": {"type": "number"}, "score": {"type": ["integer", "null"]},
+        "centroide": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2},
+        "geometry": {"type": "object"},
+        "ejemplo": {"type": "boolean"}
+      }}}
+  }
+}

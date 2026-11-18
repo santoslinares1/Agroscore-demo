@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ARCHIVO DE EJEMPLO para probar «Cargar lote» y `run_pipeline.py data/ejemplo_carga.kml`.
+     Polígonos ilustrativos cerca de Alejandro Roca: NO son lotes reales ni de clientes. -->
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2">
+  <Document>
+    <name>EJEMPLO – lotes para probar la carga</name>
+    <Folder>
+      <name>Ejemplo</name>
+      <Placemark>
+        <name>EJEMPLO Lote A</name>
+        <description>Polígono de ejemplo (no es un lote real)</description>
+        <Polygon><tessellate>1</tessellate><outerBoundaryIs><LinearRing><coordinates>
+          -63.72520,-33.31816 -63.71955,-33.31851 -63.71988,-33.32340 -63.72562,-33.32305 -63.72520,-33.31816
+        </coordinates></LinearRing></outerBoundaryIs></Polygon>
+      </Placemark>
+      <Placemark>
+        <name>EJEMPLO Campo B</name>
+        <description>MultiGeometry con dos potreros de ejemplo</description>
+        <MultiGeometry>
+          <Polygon><outerBoundaryIs><LinearRing><coordinates>
+          -63.71106,-33.32082 -63.70291,-33.32214 -63.70308,-33.32500 -63.71131,-33.32452 -63.71106,-33.32082
+        </coordinates></LinearRing></outerBoundaryIs></Polygon>
+          <Polygon><outerBoundaryIs><LinearRing><coordinates>
+          -63.71273,-33.32640 -63.70416,-33.32640 -63.70541,-33.33164 -63.71298,-33.33101 -63.71273,-33.32640
+        </coordinates></LinearRing></outerBoundaryIs></Polygon>
+        </MultiGeometry>
+      </Placemark>
+    </Folder>
+  </Document>
+</kml>

@@ -1,0 +1,118 @@
+{
+  "type": "FeatureCollection",
+  "name": "lotes",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "ejemplo_roca_norte",
+        "nombre": "Lote Ejemplo Roca Norte",
+        "localidad": "Zona Alejandro Roca, Córdoba",
+        "fuente": "EJEMPLO: polígono dibujado a mano sobre imagen satelital pública (Esri World Imagery) para la demo; NO es un lote de cliente ni tiene datos reales. Reemplazar por los polígonos reales."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -63.702507,
+              -33.291364
+            ],
+            [
+              -63.695834,
+              -33.292656
+            ],
+            [
+              -63.696735,
+              -33.299902
+            ],
+            [
+              -63.704438,
+              -33.298503
+            ],
+            [
+              -63.702507,
+              -33.291364
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "ejemplo_roca_sur",
+        "nombre": "Lote Ejemplo Roca Sur",
+        "localidad": "Zona Alejandro Roca, Córdoba",
+        "fuente": "EJEMPLO: polígono dibujado a mano sobre imagen satelital pública (Esri World Imagery) para la demo; NO es un lote de cliente ni tiene datos reales. Reemplazar por los polígonos reales."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -63.746081,
+              -33.386959
+            ],
+            [
+              -63.739808,
+              -33.386959
+            ],
+            [
+              -63.739808,
+              -33.393317
+            ],
+            [
+              -63.746081,
+              -33.393317
+            ],
+            [
+              -63.746081,
+              -33.386959
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "ejemplo_rio_cuarto_este",
+        "nombre": "Lote Ejemplo Río Cuarto Este",
+        "localidad": "Entre Río Cuarto y Alejandro Roca, Córdoba",
+        "fuente": "EJEMPLO: polígono dibujado a mano sobre imagen satelital pública (Esri World Imagery) para la demo; NO es un lote de cliente ni tiene datos reales. Reemplazar por los polígonos reales."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -63.983788,
+              -33.286253
+            ],
+            [
+              -63.97775,
+              -33.287431
+            ],
+            [
+              -63.977716,
+              -33.2936
+            ],
+            [
+              -63.985734,
+              -33.2936
+            ],
+            [
+              -63.985734,
+              -33.290516
+            ],
+            [
+              -63.983788,
+              -33.286253
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

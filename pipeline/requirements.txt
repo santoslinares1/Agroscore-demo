@@ -1,0 +1,9 @@
+# Pipeline AgroScore (Python 3.11+)
+earthengine-api>=1.1
+numpy>=1.26
+matplotlib>=3.8
+Pillow>=10.0
+reportlab>=4.0
+jsonschema>=4.21
+# Opcional: leer GeoTIFF de IDECOR descargados (data/cultivos/idecor_AAAA-AA.tif)
+# rasterio>=1.3
