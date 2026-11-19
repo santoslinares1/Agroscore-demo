@@ -3,34 +3,29 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#111713" />
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%23d6ef4a'/%3E%3C/svg%3E" />
+    <meta name="theme-color" content="#f4f5f4" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='1' y='1' width='14' height='14' fill='none' stroke='%23111713' stroke-width='1.5'/%3E%3Cpath d='M3 11 V5 H8' fill='none' stroke='%23111713' stroke-width='1.2'/%3E%3C/svg%3E" />
     <title>AgroScore · Demo maní</title>
     <style>
-      body { margin: 0; background: #f3eee2; color: #111713; font-family: system-ui, sans-serif; }
-      .aviso-ejemplo { background: #8e1528; color: #fffdf8; text-align: center; font-weight: 700; padding: .8rem 1rem; font-size: 1rem; line-height: 1.35; }
-      .top { display: flex; align-items: center; gap: .6rem; padding: .85rem 1.2rem; background: #111713; color: #f6f1e4; border-bottom: 3px solid #d6ef4a; }
-      .logo { width: 22px; height: 22px; border-radius: 50%; background: #d6ef4a; display: inline-block; }
-      .marca { font-weight: 700; font-size: 1.15rem; display: flex; gap: .5rem; align-items: center; }
-      .marca small { font-weight: 500; opacity: .8; }
-      main { max-width: 1180px; margin: 0 auto; padding: 1.1rem 1.2rem 2rem; }
-      .sk { background: linear-gradient(90deg, #e4dccb 25%, #f7f1e4 37%, #e4dccb 63%); background-size: 400% 100%; animation: sk 1.3s ease infinite; border-radius: 14px; }
-      .sk-title { height: 34px; width: min(520px, 92%); margin: .2rem 0 .7rem; }
-      .sk-line { height: 18px; width: min(720px, 100%); margin-bottom: 1rem; }
-      .sk-hero { height: 148px; margin-bottom: 1rem; }
-      .sk-map { height: min(420px, 58vw); }
-      @keyframes sk { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
-      @media (prefers-reduced-motion: reduce) { .sk { animation: none; background: #e4dccb; } }
+      body { margin: 0; background: #f4f5f4; color: #111713; font-family: system-ui, sans-serif; }
+      .aviso-ejemplo { background: #8e1528; color: #fff; text-align: center; font-weight: 700; padding: .8rem 1rem; font-size: 1rem; line-height: 1.35; }
+      .top { display: flex; justify-content: space-between; align-items: flex-end; gap: .6rem; padding: .85rem 1.4rem .6rem; color: #111713; border-bottom: 1px solid #111713; }
+      .marca { font-weight: 600; font-size: 1.25rem; line-height: 1.1; }
+      .marca small { display: block; font-weight: 500; font-size: .875rem; margin-top: .2rem; }
+      main { max-width: 1280px; margin: 0 auto; padding: 1.15rem 1.3rem 2rem; }
+      .sk { background: #e6e8e6; }
+      .sk-title { height: 36px; width: min(480px, 90%); margin: .3rem 0 .7rem; }
+      .sk-line { height: 16px; width: min(640px, 100%); margin-bottom: .8rem; border-top: 1px solid #111713; border-bottom: 1px solid #111713; background: transparent; }
+      .sk-map { height: min(460px, 62vw); border: 1px solid #111713; }
     </style>
   </head>
   <body>
     <div id="app">
       <div class="aviso-ejemplo">Cargando lotes…</div>
-      <header class="top"><div class="marca"><span class="logo"></span>AgroScore <small>Demo maní</small></div></header>
+      <header class="top"><div class="marca">AgroScore <small>Demo maní</small></div></header>
       <main>
         <div class="sk sk-title"></div>
         <div class="sk sk-line"></div>
-        <div class="sk sk-hero"></div>
         <div class="sk sk-map"></div>
       </main>
     </div>

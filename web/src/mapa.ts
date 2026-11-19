@@ -144,7 +144,7 @@ export function crearMapa(el: HTMLElement, lotes: Lote[], opts: OpcionesMapa) {
     const b = grupo.getBounds();
     if (!b.isValid()) { map.setView([-33.4, -63.7], 6); return; }   // sin lotes válidos: vista general de Córdoba
     if (opts.modo === "inicio") map.fitBounds(b, { padding: [40, 40] });
-    else map.fitBounds(b, { padding: mini ? [8, 8] : [28, 28], maxZoom: 17 });
+    else map.fitBounds(b, { padding: mini ? [12, 12] : [40, 40], maxZoom: 17 });
   };
   encuadrar();
   setTimeout(() => { map.invalidateSize(); encuadrar(); }, 60);
@@ -205,11 +205,19 @@ export function agregarCapasLote(map: L.Map, l: Lote, el: HTMLElement, inicial: 
   L.DomEvent.disableClickPropagation(panel);
   L.DomEvent.disableScrollPropagation(panel);
   const colocar = () => {
-    if (!document.body.contains(el)) {
+    const riel = document.getElementById("riel-capas");
+    if (!document.body.contains(el) && !(riel && document.body.contains(riel))) {
       window.removeEventListener("resize", colocar);
       window.removeEventListener("hashchange", colocar);
       return;
     }
+    if (riel && document.body.contains(riel)) {
+      panel.classList.add("en-riel");
+      panel.classList.remove("fuera");
+      riel.appendChild(panel);
+      return;
+    }
+    panel.classList.remove("en-riel");
     const angosto = window.innerWidth < 760;
     panel.classList.toggle("fuera", angosto);
     if (angosto) el.insertAdjacentElement("afterend", panel);
@@ -243,6 +251,7 @@ export function agregarCapasLote(map: L.Map, l: Lote, el: HTMLElement, inicial: 
   map.on("sin-tiles", () => { if (actual === "ninguna" && capas.has("ndvi")) mostrar("ndvi"); });
   if (el.classList.contains("sin-tiles") && capas.has("ndvi")) mostrar("ndvi");
 }
+
 
 function gradiente(tipo: "ndvi" | "ndmi", escala: [number, number] | undefined, titulo: string, izq: string, der: string) {
   const [a, b] = escala ?? [NaN, NaN];

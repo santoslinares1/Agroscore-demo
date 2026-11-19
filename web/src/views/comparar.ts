@@ -1,7 +1,7 @@
 import type { Datos } from "../data";
 import { textoErrorLote, url } from "../data";
 import { crearMapa } from "../mapa";
-import { colorScore, esc, fraseScore, num, scoreTxt, textoScore } from "../fmt";
+import { esc, fraseScore, num, scoreTxt } from "../fmt";
 import { lineaTiempo } from "./detalle";
 import { etiquetaComp, INDICE_VIGOR, nivel, rotacionSinDato, ultimoManiTxt, vigorBase } from "../textos";
 import type { Lote } from "../types";
@@ -34,7 +34,7 @@ export function vistaComparar(app: HTMLElement, d: Datos, idsParam: string | nul
 
   const filas: Fila[] = [
     { t: "Ubicación", html: (l) => `<div class="mapa mini" data-mini="${l.id}"></div>` },
-    { t: "El número", html: (l) => `<span class="badge-score ${l.score.valor === null ? "sin-score" : ""}" style="background:${colorScore(l.score.valor)};color:${textoScore(l.score.valor)}">${scoreTxt(l.score.valor)}</span>`
+    { t: "El número", html: (l) => `<span class="num-tabla ${l.score.valor === null ? "sin-score" : ""}">${scoreTxt(l.score.valor)}</span>`
         + `<div class="frase-score">${esc(fraseScore(l.score.valor))}</div>`
         + (l.ejemplo ? `<span class="chip-ejemplo">Datos de ejemplo</span>` : "")
         + (l.score.valor === null && l.score.motivo_sin_score ? `<br><small>${esc(l.score.motivo_sin_score)}</small>` : l.score.reponderado ? `<br><small>parcial (${num((l.score.cobertura ?? 1) * 100, 0)} % del peso)</small>` : ""),

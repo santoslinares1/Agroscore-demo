@@ -25,7 +25,7 @@ function marco(d: Datos): HTMLElement {
   root.innerHTML = `
     ${banner}
     <header class="top">
-      <a class="marca" href="#/"><span class="logo"></span>AgroScore <small>Demo maní</small></a>
+      <a class="marca" href="#/"><span class="marca-nombre">AgroScore</span><small>Demo maní</small></a>
       <nav><a href="#/" data-r="/">Mapa</a><a href="#/comparar" data-r="/comparar">Comparar</a><a href="#/cargar" data-r="/cargar">Cargar lote</a><a href="#/como-funciona" data-r="/como-funciona">Cómo funciona</a></nav>
     </header>
     <main id="vista"></main>
