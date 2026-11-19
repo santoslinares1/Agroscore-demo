@@ -1,7 +1,10 @@
 import "@fontsource/ibm-plex-sans/latin-400.css";
 import "@fontsource/ibm-plex-sans/latin-600.css";
 import "@fontsource/ibm-plex-sans/latin-700.css";
+import "@fontsource/ibm-plex-serif/latin-400.css";
+import "@fontsource/ibm-plex-serif/latin-600.css";
 import "@fontsource/ibm-plex-mono/latin-500.css";
+import "@fontsource/caveat/latin-600.css";
 import "./style.css";
 import { AVISO_EJEMPLO, cargarDatos, ErrorIndice, type Datos } from "./data";
 import { vistaInicio } from "./views/inicio";
@@ -25,7 +28,7 @@ function marco(d: Datos): HTMLElement {
   root.innerHTML = `
     ${banner}
     <header class="top">
-      <a class="marca" href="#/"><span class="logo"></span>AgroScore <small>Demo maní</small></a>
+      <a class="marca" href="#/"><span class="marca-nombre">AgroScore</span><small>cuaderno de campo · demo maní</small></a>
       <nav><a href="#/" data-r="/">Mapa</a><a href="#/comparar" data-r="/comparar">Comparar</a><a href="#/cargar" data-r="/cargar">Cargar lote</a><a href="#/como-funciona" data-r="/como-funciona">Cómo funciona</a></nav>
     </header>
     <main id="vista"></main>

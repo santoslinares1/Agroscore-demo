@@ -144,7 +144,7 @@ export function crearMapa(el: HTMLElement, lotes: Lote[], opts: OpcionesMapa) {
     const b = grupo.getBounds();
     if (!b.isValid()) { map.setView([-33.4, -63.7], 6); return; }   // sin lotes válidos: vista general de Córdoba
     if (opts.modo === "inicio") map.fitBounds(b, { padding: [40, 40] });
-    else map.fitBounds(b, { padding: mini ? [8, 8] : [28, 28], maxZoom: 17 });
+    else map.fitBounds(b, { padding: mini ? [12, 12] : [40, 40], maxZoom: 17 });
   };
   encuadrar();
   setTimeout(() => { map.invalidateSize(); encuadrar(); }, 60);
@@ -205,11 +205,19 @@ export function agregarCapasLote(map: L.Map, l: Lote, el: HTMLElement, inicial: 
   L.DomEvent.disableClickPropagation(panel);
   L.DomEvent.disableScrollPropagation(panel);
   const colocar = () => {
-    if (!document.body.contains(el)) {
+    const riel = document.getElementById("riel-capas");
+    if (!document.body.contains(el) && !(riel && document.body.contains(riel))) {
       window.removeEventListener("resize", colocar);
       window.removeEventListener("hashchange", colocar);
       return;
     }
+    if (riel && document.body.contains(riel)) {
+      panel.classList.add("en-riel");
+      panel.classList.remove("fuera");
+      riel.appendChild(panel);
+      return;
+    }
+    panel.classList.remove("en-riel");
     const angosto = window.innerWidth < 760;
     panel.classList.toggle("fuera", angosto);
     if (angosto) el.insertAdjacentElement("afterend", panel);
@@ -242,6 +250,132 @@ export function agregarCapasLote(map: L.Map, l: Lote, el: HTMLElement, inicial: 
   // Sin internet: mostrar NDVI para que el lote no quede vacío
   map.on("sin-tiles", () => { if (actual === "ninguna" && capas.has("ndvi")) mostrar("ndvi"); });
   if (el.classList.contains("sin-tiles") && capas.has("ndvi")) mostrar("ndvi");
+}
+
+type ClaseZona = "baja" | "alta";
+
+function clasePixel(r: number, g: number, b: number, a: number): ClaseZona | "media" | null {
+  if (a < 80) return null;
+  if (r > 150 && r > g * 1.3 && r > b) return "baja";
+  if (g > 90 && g > r * 1.15 && g > b) return "alta";
+  return "media";
+}
+
+/**
+ * Leyendas sobre la foto. El texto y el porcentaje salen de zonas.*_pct.
+ * El punto es el centroide de los píxeles de ese color en overlay_zonas (misma georreferencia que la capa).
+ * Si el PNG no se puede leer, no se dibuja nada: no se inventa una posición.
+ */
+export function anotarZonas(map: L.Map, l: Lote) {
+  const archivo = l.imagenes.overlay_zonas;
+  const bbox = l.imagenes.bbox;
+  if (!archivo || !bbox) return;
+  if (l.zonas.baja_pct === null && l.zonas.alta_pct === null) return;
+  const img = new Image();
+  img.onload = () => {
+    if (!map.getContainer().isConnected) return;
+    const maxLado = 160;
+    const escala = Math.min(1, maxLado / Math.max(img.naturalWidth, img.naturalHeight));
+    const w = Math.max(1, Math.round(img.naturalWidth * escala));
+    const h = Math.max(1, Math.round(img.naturalHeight * escala));
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    if (!ctx) return;
+    ctx.drawImage(img, 0, 0, w, h);
+    let data: Uint8ClampedArray;
+    try { data = ctx.getImageData(0, 0, w, h).data; } catch { return; }
+    const acc: Record<ClaseZona, [number, number, number]> = { baja: [0, 0, 0], alta: [0, 0, 0] };
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const i = (y * w + x) * 4;
+        const k = clasePixel(data[i], data[i + 1], data[i + 2], data[i + 3]);
+        if (k !== "baja" && k !== "alta") continue;
+        acc[k][0] += x;
+        acc[k][1] += y;
+        acc[k][2] += 1;
+      }
+    }
+    const [west, south, east, north] = bbox;
+    if (!map.getPane("anotaciones")) {
+      const pane = map.createPane("anotaciones");
+      pane.style.zIndex = "650";
+      pane.style.pointerEvents = "none";
+    }
+    type Anot = {
+      centro: L.LatLng; fx: number; fy: number; haciaIzquierda: boolean;
+      marca: L.Marker; linea: L.Polyline; halo: L.Polyline; punto: L.CircleMarker; w: number; h: number;
+    };
+    const anotaciones: Anot[] = [];
+    const crear = (k: ClaseZona, texto: string, pct: number | null) => {
+      if (pct === null) return;
+      const [sx, sy, n] = acc[k];
+      if (n < 12) return;
+      const fx = (sx / n) / w;
+      const fy = (sy / n) / h;
+      const centro = L.latLng(north - fy * (north - south), west + fx * (east - west));
+      // La etiqueta sale hacia afuera del lote, no hacia la zona de enfrente.
+      const haciaIzquierda = fx < 0.5;
+      const iconSize: [number, number] = [158, 70];
+      const iconAnchor: [number, number] = haciaIzquierda ? [iconSize[0], iconSize[1] / 2] : [0, iconSize[1] / 2];
+      const html = `<span class="anotacion ${haciaIzquierda ? "hacia-izq" : "hacia-der"}"><span class="anotacion-mano">${esc(texto)}</span><span class="anotacion-num">${num(pct, 0, " %")}</span>${l.ejemplo ? `<span class="anotacion-ej">Datos de ejemplo</span>` : ""}</span>`;
+      const opts = { pane: "anotaciones", interactive: false as const };
+      anotaciones.push({
+        centro, fx, fy, haciaIzquierda, w: iconSize[0], h: iconSize[1],
+        marca: L.marker(centro, { ...opts, keyboard: false, icon: L.divIcon({ className: "anotacion-pin", html, iconSize, iconAnchor }) }),
+        halo: L.polyline([centro, centro], { ...opts, color: "#fbf6ea", weight: 5.5, opacity: 0.95 }),
+        linea: L.polyline([centro, centro], { ...opts, color: "#111713", weight: 2, opacity: 1 }),
+        punto: L.circleMarker(centro, { ...opts, radius: 5.5, color: "#111713", weight: 2, fillColor: "#d6ef4a", fillOpacity: 1 }),
+      });
+    };
+    crear("alta", "zona alta", l.zonas.alta_pct);
+    crear("baja", "zona más floja", l.zonas.baja_pct);
+    const choca = (a: { l: number; t: number; r: number; b: number }, b: { l: number; t: number; r: number; b: number }) =>
+      a.l < b.r - 4 && a.r > b.l + 4 && a.t < b.b - 4 && a.b > b.t + 4;
+    const layout = () => {
+      if (!map.getContainer().isConnected) return;
+      const size = map.getSize();
+      const angosto = size.x < 720;
+      const ocupadas: { l: number; t: number; r: number; b: number }[] = [];
+      for (const a of anotaciones) {
+        const puesta = map.hasLayer(a.marca);
+        if (angosto) {
+          if (puesta) { map.removeLayer(a.marca); map.removeLayer(a.linea); map.removeLayer(a.halo); map.removeLayer(a.punto); }
+          continue;
+        }
+        if (!puesta) { a.halo.addTo(map); a.linea.addTo(map); a.punto.addTo(map); a.marca.addTo(map); }
+        const p = map.latLngToContainerPoint(a.centro);
+        const margen = 8;
+        let x = p.x + (a.haciaIzquierda ? -78 : 78);
+        let y = p.y + (a.fy < 0.5 ? -36 : 36);
+        const clamp = () => {
+          if (a.haciaIzquierda) x = Math.max(a.w + margen, Math.min(x, size.x - margen));
+          else x = Math.max(margen, Math.min(x, size.x - a.w - margen));
+          y = Math.max(a.h / 2 + margen, Math.min(y, size.y - a.h / 2 - margen));
+        };
+        clamp();
+        for (let i = 0; i < 5; i++) {
+          const left = a.haciaIzquierda ? x - a.w : x;
+          const caja = { l: left, t: y - a.h / 2, r: left + a.w, b: y + a.h / 2 };
+          if (!ocupadas.some((o) => choca(caja, o))) { ocupadas.push(caja); break; }
+          y += a.h + 10;
+          clamp();
+        }
+        const dest = map.containerPointToLatLng(L.point(x, y));
+        a.halo.setLatLngs([a.centro, dest]);
+        a.linea.setLatLngs([a.centro, dest]);
+        a.marca.setLatLng(dest);
+      }
+    };
+    layout();
+    map.on("zoom move resize", layout);
+    const cortar = () => map.off("zoom move resize", layout);
+    map.on("unload", cortar);
+    window.addEventListener("hashchange", cortar, { once: true });
+    window.setTimeout(layout, 120);
+  };
+  img.src = url(l.id, archivo);
 }
 
 function gradiente(tipo: "ndvi" | "ndmi", escala: [number, number] | undefined, titulo: string, izq: string, der: string) {

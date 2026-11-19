@@ -1,43 +1,113 @@
 import type { Datos } from "../data";
 import { AVISO_EJEMPLO, textoErrorLote, url } from "../data";
-import { agregarCapasLote, crearMapa } from "../mapa";
+import { agregarCapasLote, anotarZonas, crearMapa } from "../mapa";
 import { graficoNDVI } from "../grafico";
-import { colorScore, cultivoNombre, esc, fraseScore, md, num, SIN_SCORE } from "../fmt";
+import { cultivoNombre, esc, fraseScore, md, num, SIN_SCORE } from "../fmt";
 import { comp, etiquetaComp, explicacion, fraseRotacion, INDICE_VIGOR, nivel, NIVEL_TXT, ultimoManiTxt, vigorBase } from "../textos";
-import type { Lote } from "../types";
+import type { Campania, Lote } from "../types";
 
-export function bloqueScore(l: Lote, explicar = true): string {
-  const s = l.score;
-  return `
-    <div class="score-wrap">
-      <div class="score-lado">
-        <div class="score-grande ${s.valor === null ? "sin-score" : ""}" style="--c:${colorScore(s.valor)}" role="img" aria-label="${s.valor === null ? SIN_SCORE : `Puntaje ${s.valor} de 100`}">
-          ${s.valor === null ? `<span class="valor">${SIN_SCORE}</span>` : `<span class="valor">${s.valor}</span><span class="de">/100</span>`}
-        </div>
-        ${l.ejemplo ? `<span class="chip-ejemplo">Datos de ejemplo</span>` : ""}
-        <p class="score-frase">${esc(fraseScore(s.valor))}</p>
-        ${s.valor !== null ? `<p class="score-escala">De 0 a 100. Más alto, más favorable para alquilar y sembrar maní.</p>` : ""}
-      </div>
-      <div class="componentes">
-        ${s.componentes.map((c) => {
-          const pe = c.peso_efectivo ?? c.peso;
-          const aporte = c.valor === null || s.valor === null ? null : 100 * c.valor * pe;
-          const ex = explicacion(c.clave, s);
-          return `<div class="comp">
-            <div class="comp-t"><span>${esc(etiquetaComp(c, s))} <small class="peso">pesa ${num(c.peso * 100, 0, "%")}</small></span>
-              <span class="aporte">${num(aporte, 1)} <small>de ${num(pe * 100, 0)} pts</small></span></div>
-            <div class="barra" role="img" aria-label="${num(c.valor)} sobre 1"><i class="n-${nivel(c.valor)}" style="width:${(c.valor ?? 0) * 100}%"></i></div>
-            ${explicar && ex ? `<p class="comp-ex">${ex.que} <em>${ex.alto}</em></p>` : ""}
-          </div>`;
-        }).join("")}
-      </div>
+const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+
+/** Fecha de una imagen (YYYY-MM-DD) en criollo, sin inventar el día si el texto no parsea. */
+export function fechaStamp(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+  if (!m) return iso;
+  const mes = MESES[Number(m[2]) - 1];
+  return mes ? `${Number(m[3])} ${mes} ${m[1]}` : iso;
+}
+
+/** Campaña con el NDVI máximo más bajo. Es el mínimo de un dato que ya está en el lote. */
+function campaniaMenosVigor(l: Lote): Campania | null {
+  let best: Campania | null = null;
+  for (const c of l.campanias) {
+    if (typeof c.ndvi_max !== "number" || !Number.isFinite(c.ndvi_max)) continue;
+    if (!best || c.ndvi_max < (best.ndvi_max ?? Infinity)) best = c;
+  }
+  return best;
+}
+
+export function selloImagen(l: Lote): string {
+  const fecha = fechaStamp(l.imagenes.fecha_rgb);
+  const camp = l.imagenes.campania_overlays;
+  const aria = `Sello Sentinel-2${fecha ? `, ${fecha}` : ""}${camp ? `, campaña ${camp}` : ""}`;
+  return `<div class="sello" role="img" aria-label="${esc(aria)}">
+    <div class="sello-txt">
+      ${l.ejemplo ? `<b>Datos de ejemplo</b>` : ""}
+      <strong>Sentinel-2</strong>
+      <span>${fecha ? esc(fecha) : "fecha s/d"}</span>
+      ${camp ? `<small>camp. ${esc(camp)}</small>` : ""}
+      <small>Copernicus</small>
     </div>
-    ${s.valor === null ? `<p class="aviso-score sin">No se calculó un score total: ${esc(s.motivo_sin_score ?? "datos insuficientes")}</p>`
-      : s.reponderado ? `<p class="aviso-score parcial"><strong>Score parcial:</strong> calculado sobre el ${num((s.cobertura ?? 1) * 100, 0)} % del peso
-        (sin dato: ${esc(s.componentes.filter((c) => c.valor === null).map((c) => etiquetaComp(c, s)).join(", "))}); los pesos de los demás
-        componentes se reescalaron proporcionalmente.</p>` : ""}
+  </div>`;
+}
+
+/** Notas al margen. Cada cifra sale del lote; no se agrega ninguna métrica nueva. */
+export function notasMargen(l: Lote): string {
+  const floja = campaniaMenosVigor(l);
+  const items: [string, string][] = [
+    ["Superficie", `${num(l.area_ha, 1)} ha`],
+    ["Último maní", ultimoManiTxt(l)],
+  ];
+  if (l.zonas.baja_pct !== null) items.push(["Zona más floja", `baja ${num(l.zonas.baja_pct, 0)} %`]);
+  if (l.zonas.alta_pct !== null) items.push(["Zona alta", `${num(l.zonas.alta_pct, 0)} %`]);
+  if (floja) items.push(["Menos vigor (NDVI máx.)", `${floja.campania} · ${num(floja.ndvi_max)}`]);
+  return `<div class="notas-margen">
+    ${l.ejemplo ? `<span class="chip-ejemplo">Datos de ejemplo</span>` : ""}
+    <ul>${items.map(([k, v]) => `<li><span>${esc(k)}</span><strong>${esc(v)}</strong></li>`).join("")}</ul>
+  </div>`;
+}
+
+function avisosScore(l: Lote): string {
+  const s = l.score;
+  if (s.valor === null) return `<p class="aviso-score sin">No se calculó un score total: ${esc(s.motivo_sin_score ?? "datos insuficientes")}</p>`;
+  if (!s.reponderado) return "";
+  return `<p class="aviso-score parcial"><strong>Score parcial:</strong> calculado sobre el ${num((s.cobertura ?? 1) * 100, 0)} % del peso
+    (sin dato: ${esc(s.componentes.filter((c) => c.valor === null).map((c) => etiquetaComp(c, s)).join(", "))}); los pesos de los demás
+    componentes se reescalaron proporcionalmente.</p>`;
+}
+
+/** El número grande, con unidad, como en una planilla. */
+export function figuraNumero(l: Lote): string {
+  const s = l.score;
+  return `<div class="figura-num ${s.valor === null ? "sin-score" : ""}">
+    <span class="rotulo">Número</span>
+    ${s.valor === null
+      ? `<p class="cifra cifra-sd score-grande"><span class="valor">${SIN_SCORE}</span></p>`
+      : `<p class="cifra score-grande" role="img" aria-label="Número ${s.valor} de 100"><span class="valor">${s.valor}</span><span class="unidad">/100</span></p>`}
+    ${l.ejemplo ? `<span class="chip-ejemplo">Datos de ejemplo</span>` : ""}
+    <p class="score-frase">${esc(fraseScore(s.valor))}</p>
+    ${s.valor !== null ? `<p class="score-escala">De 0 a 100. Más alto, más favorable para alquilar y sembrar maní.</p>` : ""}
+    ${avisosScore(l)}
+  </div>`;
+}
+
+function tablaComponentes(l: Lote, explicar: boolean): string {
+  const s = l.score;
+  return `<table class="planilla-tabla">
+    <thead><tr><th>Parte</th><th>Valor</th><th>Aporte</th></tr></thead>
+    <tbody>${s.componentes.map((c) => {
+      const pe = c.peso_efectivo ?? c.peso;
+      const aporte = c.valor === null || s.valor === null ? null : 100 * c.valor * pe;
+      const ex = explicacion(c.clave, s);
+      return `<tr>
+        <th scope="row">${esc(etiquetaComp(c, s))} <small class="peso">pesa ${num(c.peso * 100, 0, "%")}</small>
+          ${explicar && ex ? `<p class="comp-ex">${ex.que} <em>${ex.alto}</em></p>` : ""}</th>
+        <td class="num" data-h="Valor"><span class="regla-valor" role="img" aria-label="${num(c.valor)} sobre 1"><i class="n-${nivel(c.valor)}" style="width:${(c.valor ?? 0) * 100}%"></i></span>${num(c.valor)}</td>
+        <td class="num" data-h="Aporte">${num(aporte, 1)} <small>de ${num(pe * 100, 0)}</small></td>
+      </tr>`;
+    }).join("")}</tbody>
+  </table>`;
+}
+
+export function bloqueScore(l: Lote, explicar = true, conNumero = true): string {
+  const s = l.score;
+  return `<div class="planilla">
+    ${conNumero ? figuraNumero(l) : ""}
+    ${tablaComponentes(l, explicar)}
     <small class="nota">El número suma cada parte (su valor por el peso). Versión ${esc(s.version)} ·
-      <a href="#/como-funciona">cómo se calcula</a></small>`;
+      <a href="#/como-funciona">cómo se calcula</a></small>
+  </div>`;
 }
 
 export function lineaTiempo(l: Lote, compacta = false): string {
@@ -104,29 +174,32 @@ export function vistaDetalle(app: HTMLElement, d: Datos, id: string, capa: strin
     <nav class="migas"><a href="#/">← Volver al mapa</a>
       ${otros.map((o) => `<a class="chip-nav" href="#/lote/${o.id}">${esc(o.nombre.replace(/^Lote Ejemplo\s+/i, "").replace(/^Lote\s+/i, ""))}</a>`).join("")}</nav>
     ${l.ejemplo ? `<div class="aviso-lote">${AVISO_EJEMPLO}: el polígono está dibujado sobre una imagen pública solo para la demo y todos los números son sintéticos. No es un lote de cliente.</div>` : ""}
-    <header class="cab-lote">
+    <header class="ficha score-card">
       <div>
+        <p class="kicker">Ficha de lote</p>
         <h1>${esc(l.nombre)}</h1>
-        <p>${esc(l.localidad)} · ${num(l.area_ha, 1)} ha · <span class="meta-score">score ${l.score.valor === null ? SIN_SCORE.toLowerCase() : `${l.score.valor}/100`}</span></p>
+        <p class="cab-meta">${esc(l.localidad)} · ${num(l.area_ha, 1)} ha${l.score.valor === null ? " · score sin dato suficiente" : ""}</p>
       </div>
+      ${figuraNumero(l)}
     </header>
+    <div class="acciones">
+      <a class="btn" href="#/informe/${l.id}">Abrir informe para imprimir</a>
+      <a class="btn sec" href="${url(l.id, l.pdf)}" download="${l.id}_informe.pdf">Descargar el PDF</a>
+      <a class="btn sec" href="#/comparar?ids=${[id, ...otros.map((o) => o.id)].slice(0, 3).join(",")}">Comparar con otros</a>
+    </div>
+    <section class="escena">
+      <div id="mapa-lote" class="mapa protagonista" role="region" aria-label="Foto satelital del lote"></div>
+      <aside class="margen">
+        ${selloImagen(l)}
+        <div id="riel-capas"></div>
+        ${notasMargen(l)}
+      </aside>
+    </section>
+    <p class="mapa-ayuda">El borde amarillo es el límite del lote. Elegí qué ver arriba de la foto y mové la intensidad. Las notas del margen y las leyendas sobre la foto salen de este mismo lote.</p>
+    <p class="mapa-coord"><small>Centro del lote: ${l.centroide[1].toFixed(5)}, ${l.centroide[0].toFixed(5)}</small></p>
     <section class="grid-det">
-      <article class="card ancho score-card">
-        <h2>El número del lote</h2>
-        ${bloqueScore(l)}
-        <div class="acciones">
-          <a class="btn" href="#/informe/${l.id}">Abrir informe para imprimir</a>
-          <a class="btn sec" href="${url(l.id, l.pdf)}" download="${l.id}_informe.pdf">Descargar el PDF</a>
-          <a class="btn sec" href="#/comparar?ids=${[id, ...otros.map((o) => o.id)].slice(0, 3).join(",")}">Comparar con otros</a>
-        </div>
-      </article>
-      <article class="card ancho card-mapa">
-        <h2>El lote en el satélite</h2>
-        <div id="mapa-lote" class="mapa grande"></div>
-        <p class="mapa-ayuda">El borde amarillo es el límite del lote. Elegí qué ver arriba de la foto y mové la intensidad.</p>
-        <p class="mapa-coord"><small>Centro del lote: ${l.centroide[1].toFixed(5)}, ${l.centroide[0].toFixed(5)}</small></p>
-      </article>
-      <article class="card ancho"><h2>Semáforo: qué mirar primero</h2>${lecturaRapida(l)}</article>
+      <article class="card ancho"><h2>Cómo se arma el número</h2>${bloqueScore(l, true, false)}</article>
+      <article class="card ancho"><h2>Qué mirar primero</h2>${lecturaRapida(l)}</article>
       <article class="card ancho"><h2>Qué se sembró en cada campaña</h2>
         ${lineaTiempo(l)}
         ${leyendaCultivos}
@@ -156,11 +229,11 @@ export function vistaDetalle(app: HTMLElement, d: Datos, id: string, capa: strin
         <small>Armadas con el vigor máximo de todas las campañas. Conviene recorrer primero la zona baja.</small></article>
       <article class="card"><h2>Agua, suelo y lluvia</h2>
         <dl class="dl">
-          <dt>Máxima superficie con agua</dt><dd>${num(a.max_ha_anegadas, 1, " ha")} ${a.fecha_max ? `<small>(${a.fecha_max})</small>` : ""}</dd>
-          <dt>Cada cuánto aparece agua</dt><dd>${num(a.frecuencia_pct, 1, " %")}</dd>
-          <dt>Arcilla / arena (0–5 cm)</dt><dd>${num(l.suelo.arcilla_pct, 1, " %")} / ${num(l.suelo.arena_pct, 1, " %")}</dd>
-          <dt>Carbono orgánico</dt><dd>${num(l.suelo.carbono_org, 1, " %")}</dd>
-          <dt>Lluvia media del año</dt><dd>${num(l.clima.pp_anual_mm, 0, " mm")}</dd>
+          <dt>Máxima superficie con agua</dt><dd>${num(a.max_ha_anegadas, 1)} <small>ha</small> ${a.fecha_max ? `<small>(${a.fecha_max})</small>` : ""}</dd>
+          <dt>Cada cuánto aparece agua</dt><dd>${num(a.frecuencia_pct, 1)} <small>%</small></dd>
+          <dt>Arcilla / arena (0–5 cm)</dt><dd>${num(l.suelo.arcilla_pct, 1)} <small>%</small> / ${num(l.suelo.arena_pct, 1)} <small>%</small></dd>
+          <dt>Carbono orgánico</dt><dd>${num(l.suelo.carbono_org, 1)} <small>%</small></dd>
+          <dt>Lluvia media del año</dt><dd>${num(l.clima.pp_anual_mm, 0)} <small>mm</small></dd>
           <dt>Fuentes</dt><dd><small>${esc(l.suelo.fuente)} · ${esc(l.clima.fuente)}</small></dd>
         </dl></article>
       <article class="card ancho resumen"><h2>Resumen en criollo</h2>${md(d.resumenes.get(l.id) ?? "")}
@@ -172,5 +245,6 @@ export function vistaDetalle(app: HTMLElement, d: Datos, id: string, capa: strin
   const el = app.querySelector<HTMLElement>("#mapa-lote")!;
   const m = crearMapa(el, [l], { modo: "detalle" });
   agregarCapasLote(m.map, l, el, capa);
+  anotarZonas(m.map, l);
   graficoNDVI(app.querySelector<HTMLCanvasElement>("#ndvi")!, l);
 }

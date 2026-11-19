@@ -8,7 +8,7 @@ Chart.register(BarController, BarElement, CategoryScale, LinearScale, LineContro
 
 Chart.defaults.font.family = '"IBM Plex Sans", "Segoe UI", sans-serif';
 Chart.defaults.font.size = 14;
-Chart.defaults.color = "#243028";
+Chart.defaults.color = "#111713";
 
 export const DORADO = "#c9a227";
 
@@ -19,7 +19,7 @@ export function graficoNDVI(canvas: HTMLCanvasElement, l: Lote) {
       labels: c.map((x) => x.campania),
       datasets: [
         { type: "bar", label: "Vigor máximo (NDVI)", data: c.map((x) => x.ndvi_max),
-          backgroundColor: c.map((x) => (x.cultivo === "mani" ? DORADO : "#1f6f43")), order: 2 },
+          backgroundColor: c.map((x) => (x.cultivo === "mani" ? DORADO : "#145c32")), order: 2, borderWidth: 0 },
         { type: "line", label: "Vigor medio (NDVI)", data: c.map((x) => x.ndvi_medio), borderColor: "#111713",
           backgroundColor: "#111713", pointBackgroundColor: "#111713", tension: 0.2, order: 1 },
       ],
