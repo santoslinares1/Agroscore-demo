@@ -11,10 +11,8 @@
     "test:navegador": "node scripts/smoke-navegador.mjs"
   },
   "dependencies": {
-    "@fontsource/caveat": "^5.2.8",
     "@fontsource/ibm-plex-mono": "^5.3.0",
     "@fontsource/ibm-plex-sans": "^5.3.0",
-    "@fontsource/ibm-plex-serif": "^5.2.6",
     "@geoman-io/leaflet-geoman-free": "^2.20.6",
     "@tmcw/togeojson": "^7.1.4",
     "@turf/area": "^7.4.0",

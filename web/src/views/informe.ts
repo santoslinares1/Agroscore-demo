@@ -3,7 +3,7 @@ import { AVISO_EJEMPLO, url } from "../data";
 import { crearMapa } from "../mapa";
 import { graficoNDVI } from "../grafico";
 import { cultivoNombre, esc, md, num } from "../fmt";
-import { bloqueScore, leyendaCultivos, lineaTiempo, lotNoDisponible, notasMargen, selloImagen } from "./detalle";
+import { bloqueScore, leyendaCultivos, lineaTiempo, lotNoDisponible, notasMargen } from "./detalle";
 import { fraseRotacion } from "../textos";
 
 /** Vista de informe imprimible (Imprimir → Guardar como PDF) con los mismos datos del lote.json. */
@@ -23,19 +23,18 @@ export function vistaInforme(app: HTMLElement, d: Datos, id: string) {
       ${l.ejemplo ? `<div class="aviso-informe">${AVISO_EJEMPLO} · polígono y números sintéticos, no es un lote de cliente</div>` : ""}
       <header class="inf-cab">
         <div>
-          <p class="kicker">AgroScore · cuaderno de campo</p>
+          <p class="kicker">Informe de lote</p>
           <h1>${esc(l.nombre)}</h1>
           <p>${esc(l.localidad)} · ${num(l.area_ha, 1)} ha</p>
           <p class="centro">centro ${l.centroide[1].toFixed(5)}, ${l.centroide[0].toFixed(5)}</p>
         </div>
-        ${selloImagen(l)}
       </header>
       <section class="inf-apertura">
         <div><h2>El número ${marca}</h2>${bloqueScore(l, false)}</div>
         <div class="bloque-mapa">
           <h2>Dónde está ${marca}</h2>
           <div id="mapa-inf" class="mapa inf"></div>
-          <p class="mapa-ayuda">Borde amarillo: límite del lote. Fondo: imagen Esri. La fecha del sello es la del color natural Sentinel-2.</p>
+          <p class="mapa-ayuda">Borde amarillo: límite del lote. Fondo: imagen Esri.</p>
           ${notasMargen(l)}
         </div>
       </section>

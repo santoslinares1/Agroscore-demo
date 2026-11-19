@@ -1,10 +1,10 @@
 import type { Datos } from "../data";
 import { AVISO_EJEMPLO, textoErrorLote, url } from "../data";
-import { agregarCapasLote, anotarZonas, crearMapa } from "../mapa";
+import { agregarCapasLote, crearMapa } from "../mapa";
 import { graficoNDVI } from "../grafico";
 import { cultivoNombre, esc, fraseScore, md, num, SIN_SCORE } from "../fmt";
 import { comp, etiquetaComp, explicacion, fraseRotacion, INDICE_VIGOR, nivel, NIVEL_TXT, ultimoManiTxt, vigorBase } from "../textos";
-import type { Campania, Lote } from "../types";
+import type { Lote } from "../types";
 
 const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
 
@@ -17,44 +17,24 @@ export function fechaStamp(iso: string | null | undefined): string {
   return mes ? `${Number(m[3])} ${mes} ${m[1]}` : iso;
 }
 
-/** Campaña con el NDVI máximo más bajo. Es el mínimo de un dato que ya está en el lote. */
-function campaniaMenosVigor(l: Lote): Campania | null {
-  let best: Campania | null = null;
-  for (const c of l.campanias) {
-    if (typeof c.ndvi_max !== "number" || !Number.isFinite(c.ndvi_max)) continue;
-    if (!best || c.ndvi_max < (best.ndvi_max ?? Infinity)) best = c;
-  }
-  return best;
-}
-
-export function selloImagen(l: Lote): string {
+/** Fecha y fuente de la foto, en una línea. */
+export function metaImagen(l: Lote): string {
   const fecha = fechaStamp(l.imagenes.fecha_rgb);
   const camp = l.imagenes.campania_overlays;
-  const aria = `Sello Sentinel-2${fecha ? `, ${fecha}` : ""}${camp ? `, campaña ${camp}` : ""}`;
-  return `<div class="sello" role="img" aria-label="${esc(aria)}">
-    <div class="sello-txt">
-      ${l.ejemplo ? `<b>Datos de ejemplo</b>` : ""}
-      <strong>Sentinel-2</strong>
-      <span>${fecha ? esc(fecha) : "fecha s/d"}</span>
-      ${camp ? `<small>camp. ${esc(camp)}</small>` : ""}
-      <small>Copernicus</small>
-    </div>
-  </div>`;
+  return ["Sentinel-2", fecha || "fecha s/d", camp ? `campaña ${camp}` : "", "Copernicus"].filter(Boolean).join(" · ");
 }
 
-/** Notas al margen. Cada cifra sale del lote; no se agrega ninguna métrica nueva. */
+/** Tabla corta al lado del mapa. Cada cifra sale del lote. */
 export function notasMargen(l: Lote): string {
-  const floja = campaniaMenosVigor(l);
-  const items: [string, string][] = [
-    ["Superficie", `${num(l.area_ha, 1)} ha`],
-    ["Último maní", ultimoManiTxt(l)],
-  ];
-  if (l.zonas.baja_pct !== null) items.push(["Zona más floja", `baja ${num(l.zonas.baja_pct, 0)} %`]);
-  if (l.zonas.alta_pct !== null) items.push(["Zona alta", `${num(l.zonas.alta_pct, 0)} %`]);
-  if (floja) items.push(["Menos vigor (NDVI máx.)", `${floja.campania} · ${num(floja.ndvi_max)}`]);
+  const filas: [string, string][] = [["Superficie", `${num(l.area_ha, 1)} ha`]];
+  if (l.zonas.alta_pct !== null) filas.push(["Zona alta", `${num(l.zonas.alta_pct, 0)} %`]);
+  if (l.zonas.media_pct !== null) filas.push(["Zona media", `${num(l.zonas.media_pct, 0)} %`]);
+  if (l.zonas.baja_pct !== null) filas.push(["Zona baja", `${num(l.zonas.baja_pct, 0)} %`]);
+  filas.push(["Último maní", ultimoManiTxt(l)]);
   return `<div class="notas-margen">
     ${l.ejemplo ? `<span class="chip-ejemplo">Datos de ejemplo</span>` : ""}
-    <ul>${items.map(([k, v]) => `<li><span>${esc(k)}</span><strong>${esc(v)}</strong></li>`).join("")}</ul>
+    <table class="notas-tabla"><tbody>${filas.map(([k, v]) => `<tr><th scope="row">${esc(k)}</th><td>${esc(v)}</td></tr>`).join("")}</tbody></table>
+    <p class="meta-imagen">${esc(metaImagen(l))}</p>
   </div>`;
 }
 
@@ -77,7 +57,6 @@ export function figuraNumero(l: Lote): string {
       : `<p class="cifra score-grande" role="img" aria-label="Número ${s.valor} de 100"><span class="valor">${s.valor}</span><span class="unidad">/100</span></p>`}
     ${l.ejemplo ? `<span class="chip-ejemplo">Datos de ejemplo</span>` : ""}
     <p class="score-frase">${esc(fraseScore(s.valor))}</p>
-    ${s.valor !== null ? `<p class="score-escala">De 0 a 100. Más alto, más favorable para alquilar y sembrar maní.</p>` : ""}
     ${avisosScore(l)}
   </div>`;
 }
@@ -176,7 +155,6 @@ export function vistaDetalle(app: HTMLElement, d: Datos, id: string, capa: strin
     ${l.ejemplo ? `<div class="aviso-lote">${AVISO_EJEMPLO}: el polígono está dibujado sobre una imagen pública solo para la demo y todos los números son sintéticos. No es un lote de cliente.</div>` : ""}
     <header class="ficha score-card">
       <div>
-        <p class="kicker">Ficha de lote</p>
         <h1>${esc(l.nombre)}</h1>
         <p class="cab-meta">${esc(l.localidad)} · ${num(l.area_ha, 1)} ha${l.score.valor === null ? " · score sin dato suficiente" : ""}</p>
       </div>
@@ -190,7 +168,6 @@ export function vistaDetalle(app: HTMLElement, d: Datos, id: string, capa: strin
     <section class="escena">
       <div id="mapa-lote" class="mapa protagonista" role="region" aria-label="Foto satelital del lote"></div>
       <aside class="margen">
-        ${selloImagen(l)}
         <div id="riel-capas"></div>
         ${notasMargen(l)}
       </aside>
@@ -245,6 +222,5 @@ export function vistaDetalle(app: HTMLElement, d: Datos, id: string, capa: strin
   const el = app.querySelector<HTMLElement>("#mapa-lote")!;
   const m = crearMapa(el, [l], { modo: "detalle" });
   agregarCapasLote(m.map, l, el, capa);
-  anotarZonas(m.map, l);
   graficoNDVI(app.querySelector<HTMLCanvasElement>("#ndvi")!, l);
 }
