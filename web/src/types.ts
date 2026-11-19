@@ -18,7 +18,7 @@ export interface Lote {
     cobertura?: number; componentes_usados?: string[]; componentes_sin_dato?: string[];
     reponderado?: boolean; motivo_sin_score?: string | null;
     /** índice con que se calculó el vigor ("evi" | "combinado" | "ndvi"). Obligatorio en el schema (null solo sin
-     *  score); opcional acá para tolerar JSON anteriores, que se rotulan "Vigor histórico" sin índice. */
+     *  score); opcional acá para tolerar JSON anteriores, que se rotulan "Vigor del cultivo" sin índice. */
     vigor_base?: "evi" | "combinado" | "ndvi" | null;
     /** campañas con NDVI válido / total: la confianza "alta" exige >= 2/3 (ver pipeline/agroscore/score.py) */
     campanias_con_ndvi?: number; campanias_total?: number;

@@ -1,3 +1,7 @@
+import "@fontsource/ibm-plex-sans/latin-400.css";
+import "@fontsource/ibm-plex-sans/latin-600.css";
+import "@fontsource/ibm-plex-sans/latin-700.css";
+import "@fontsource/ibm-plex-mono/latin-500.css";
 import "./style.css";
 import { AVISO_EJEMPLO, cargarDatos, ErrorIndice, type Datos } from "./data";
 import { vistaInicio } from "./views/inicio";
@@ -16,8 +20,8 @@ function marco(d: Datos): HTMLElement {
   const hayEjemplo = d.index.ejemplo || todos.some((l) => l.ejemplo);
   const hayReales = todos.some((l) => !l.ejemplo);
   const banner = !hayEjemplo ? "" : hayReales
-    ? `<div class="aviso-ejemplo mixto" role="alert">HAY LOTES DE EJEMPLO (marcados EJEMPLO) <span>· junto a lotes analizados con datos reales. Los de ejemplo son sintéticos, no son campos de clientes.</span></div>`
-    : `<div class="aviso-ejemplo" role="alert">${AVISO_EJEMPLO.toUpperCase()} <span>· Lotes y números sintéticos para mostrar el producto; no son campos de clientes.</span></div>`;
+    ? `<div class="aviso-ejemplo mixto" role="alert"><strong>${AVISO_EJEMPLO}</strong> <span>· Hay lotes de ejemplo junto a lotes analizados con datos reales. Los de ejemplo son sintéticos, no son campos de clientes.</span></div>`
+    : `<div class="aviso-ejemplo" role="alert"><strong>${AVISO_EJEMPLO}</strong> <span>· Lotes y números sintéticos para mostrar el producto; no son campos de clientes.</span></div>`;
   root.innerHTML = `
     ${banner}
     <header class="top">
@@ -42,7 +46,7 @@ function enrutar(vista: HTMLElement, d: Datos) {
   if (ruta.startsWith("/lote/")) { const id = decodeURIComponent(ruta.slice(6)); vistaDetalle(vista, d, id, params.get("capa")); document.title = `${nombre(id)} · AgroScore`; }
   else if (ruta.startsWith("/informe/")) { const id = decodeURIComponent(ruta.slice(9)); vistaInforme(vista, d, id); document.title = `Informe ${nombre(id)} · AgroScore`; }
   else if (ruta === "/comparar") { vistaComparar(vista, d, params.get("ids")); document.title = "Comparar lotes · AgroScore"; }
-  else if (ruta === "/cargar") { vista.innerHTML = `<div class="cargando">Cargando…</div>`; import("./views/cargar").then((m) => m.vistaCargar(vista, d, recargar)); document.title = "Cargar lote · AgroScore"; }
+  else if (ruta === "/cargar") { vista.innerHTML = `<div class="esqueleto" role="status"><span class="spinner"></span><p>Cargando el mapa para dibujar el lote…</p><div class="sk sk-map"></div></div>`; import("./views/cargar").then((m) => m.vistaCargar(vista, d, recargar)); document.title = "Cargar lote · AgroScore"; }
   else if (ruta === "/como-funciona") { vistaComo(vista, d); document.title = "Cómo funciona · AgroScore"; }
   else { vistaInicio(vista, d); seccionPendientes(vista, d); document.title = "AgroScore · Demo maní"; }
 }
@@ -56,8 +60,8 @@ function seccionPendientes(vista: HTMLElement, d: Datos) {
     ? `<h2>Lotes cargados – pendientes de análisis <small>(${pend.length})</small></h2>
        <p>Guardados en este navegador. No tienen score hasta procesarlos con imágenes satelitales reales.</p>
        <ul>${pend.map((l) => `<li><strong>${esc(l.nombre)}</strong> · ${fmtHa(l.area_ha)} ha <span class="chip-estado ${l.estado === "error" ? "error" : l.estado === "analizando" ? "analizando" : "pendiente"}">${l.estado === "analizando" ? "Analizando…" : l.estado === "error" ? "Lote cargado – análisis con error" : "Lote cargado – pendiente de análisis"}</span></li>`).join("")}</ul>
-       <a class="btn sec chico" href="#/cargar">Gestionar lotes cargados</a>`
-    : `<h2>¿Tenés el contorno de un lote?</h2><p>Subí un KML/KMZ de Google Earth o dibujalo sobre el satélite.</p><a class="btn chico" href="#/cargar">Cargar un lote</a>`;
+       <a class="btn sec" href="#/cargar">Gestionar lotes cargados</a>`
+    : `<h2>¿Tenés el contorno de un lote?</h2><p>Subí un KML o KMZ de Google Earth, o dibujalo sobre el satélite.</p><a class="${d.lotes.size === 0 ? "btn" : "btn sec"}" href="#/cargar">Cargar un lote</a>`;
   vista.appendChild(s);
 }
 
@@ -80,7 +84,6 @@ cargarDatos()
   .catch((e) => {
     const detalle = e instanceof ErrorIndice ? e.message : `Error inesperado: ${String(e)}`;
     root.innerHTML = `<div class="error" role="alert"><h1>No se pudieron cargar los datos</h1><p>${esc(detalle)}</p>
-      <p>Corré el pipeline y <code>scripts/copiar_salidas.sh</code>, y serví el build con <code>npm run preview</code>
-      (abrir index.html con doble clic no permite leer los JSON).</p>
+      <p>Reintentá. Si estás armando la demo, publicá los archivos y abrilos con un servidor local: abrir el archivo suelto no deja leer los datos.</p>
       <p><button class="btn" type="button" onclick="location.reload()">Reintentar</button></p></div>`;
   });

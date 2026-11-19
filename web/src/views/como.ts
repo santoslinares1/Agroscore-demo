@@ -17,24 +17,26 @@ export function vistaComo(app: HTMLElement, d: Datos) {
   const filaVigor = (c: (typeof comps)[number]) => {
     if (vigorUnico) return { t: etiquetaComp(c, l0.score), que: explicacion(c.clave, l0.score)?.que ?? "" };
     const det = indices.map((k) => `${porIndice.get(k)} con ${k ? INDICE_VIGOR[k] : "índice sin informar"}`).join(", ");
-    return { t: "Vigor histórico", que: `${explicacion(c.clave)?.que ?? ""} El índice depende de los datos de cada lote: en esta demo, ${det} (se indica en cada lote).` };
+    return { t: "Vigor del cultivo", que: `${explicacion(c.clave)?.que ?? ""} El índice depende de los datos de cada lote: en esta demo, ${det} (se indica en cada lote).` };
   };
   const versiones = [...new Set(validos.map((l) => l.score.version))];
   const txtVersion = versiones.length > 1 ? `versiones ${versiones.join(", ")}` : `versión ${versiones[0] ?? d.index.score_version}`;
   app.innerHTML = `
-    <nav class="migas"><a href="#/">← Todos los lotes</a></nav>
+    <nav class="migas"><a href="#/">← Volver al mapa</a></nav>
     <h1>Cómo funciona AgroScore</h1>
+    <p class="lead">Miramos el lote desde el satélite y lo resumimos en un número de 0 a 100. Abajo está, en criollo, de dónde sale cada parte.</p>
+    <p class="acciones"><a class="btn" href="#/">Ver los lotes en el mapa</a></p>
     <section class="grid-det">
       <article class="card ancho">
-        <h2>De la imagen satelital al informe</h2>
+        <h2>De la foto satelital al informe</h2>
         <ol class="pasos">
-          <li><strong>Lote:</strong> se carga el polígono del campo (KML o GeoJSON, por ejemplo exportado de Google Earth).</li>
-          <li><strong>Imágenes:</strong> se procesan todas las imágenes Sentinel-2 de cada campaña (octubre a marzo), sacando nubes y sombras.</li>
-          <li><strong>Índices:</strong> NDVI y EVI (vigor del cultivo; el EVI no se satura con el cultivo cerrado) y NDMI (humedad de la vegetación) por campaña.
-            El vigor del score usa EVI cuando hay suficientes campañas con EVI y NDVI cuando no; cada lote indica cuál.</li>
-          <li><strong>Cultivo por campaña:</strong> se cruza el lote con mapas de cultivos (IDECOR para Córdoba; MapBiomas como respaldo) para saber cuándo hubo maní.</li>
-          <li><strong>Agua y suelo:</strong> radar Sentinel-1 y registro histórico de agua (JRC) para anegamiento; SoilGrids para textura y carbono; ERA5 para lluvia.</li>
-          <li><strong>Score e informe:</strong> todo se resume en un score 0–100, un PDF y esta web. El PDF y la web leen el mismo archivo, así que siempre muestran los mismos números.</li>
+          <li><strong>El lote:</strong> se carga el contorno del campo (KML o GeoJSON, por ejemplo el que exportás de Google Earth).</li>
+          <li><strong>Las fotos:</strong> se miran las imágenes Sentinel-2 de cada campaña (octubre a marzo) y se sacan las nubes y las sombras.</li>
+          <li><strong>Vigor y humedad:</strong> el vigor del cultivo (NDVI, o EVI cuando el cultivo está muy cerrado) y la humedad en las plantas (NDMI).
+            El número usa EVI si hay suficientes campañas con EVI, y NDVI si no. Cada lote dice cuál usó.</li>
+          <li><strong>Qué se sembró:</strong> se cruza el lote con mapas de cultivos (IDECOR en Córdoba; MapBiomas de respaldo) para saber cuándo hubo maní.</li>
+          <li><strong>Agua y suelo:</strong> el radar Sentinel-1 y el registro de agua (JRC) marcan anegamiento; SoilGrids, la textura y el carbono; ERA5, la lluvia.</li>
+          <li><strong>El número y el informe:</strong> todo se resume en un puntaje de 0 a 100, un PDF y esta web. El PDF y la web leen el mismo archivo, así que muestran los mismos números.</li>
         </ol>
         <p>El procesamiento se hace antes de la reunión; esta demo solo muestra los resultados y funciona sin internet
           (sin internet no se ve la imagen satelital de fondo, pero sí el lote y sus capas).</p>
@@ -45,7 +47,7 @@ export function vistaComo(app: HTMLElement, d: Datos) {
           <tbody>${comps.map((c) => {
             const ex = explicacion(c.clave);
             const f = c.clave === "vigor_historico" ? filaVigor(c) : { t: etiquetaComp(c, l0!.score), que: ex?.que ?? "" };
-            return `<tr><th>${esc(f.t)}</th><td>${num(c.peso * 100, 0, "%")}</td><td>${esc(f.que)} <em>${ex?.alto ?? ""}</em></td></tr>`;
+            return `<tr><th>${esc(f.t)}</th><td data-h="Peso">${num(c.peso * 100, 0, "%")}</td><td data-h="Qué mide">${esc(f.que)} <em>${ex?.alto ?? ""}</em></td></tr>`;
           }).join("")}</tbody></table>
         <p>Cada componente vale entre 0 y 1. Score = 100 × suma de (peso × componente).
           ${rec !== undefined ? `En rotación, el criterio de esta versión pide al menos <strong>${rec}</strong> campañas sin maní para puntaje completo.` : ""}

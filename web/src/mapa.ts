@@ -2,7 +2,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { Lote } from "./types";
 import { url } from "./data";
-import { colorScore, esc, num } from "./fmt";
+import { colorScore, esc, num, textoScore } from "./fmt";
 
 // ---------------------------------------------------------------------------
 // Mapas base (requieren internet). Si fallan, la demo sigue con el lote y sus
@@ -28,10 +28,10 @@ function capasBase(): Record<BaseId, L.Layer> {
 }
 
 const NOMBRES_BASE: Record<BaseId, string> = {
-  satelite: "Satélite (Esri World Imagery)",
-  topo: "Topográfico (Esri World Topo)",
-  relieve: "Relieve físico (OpenTopoMap)",
-  ninguno: "Sin mapa de fondo",
+  satelite: "Satélite",
+  topo: "Caminos",
+  relieve: "Relieve",
+  ninguno: "Sin fondo",
 };
 
 function rotulos(): L.Layer {
@@ -60,7 +60,7 @@ function avisoOffline(el: HTMLElement, map: L.Map) {
   el.classList.add("sin-tiles");
   const d = document.createElement("div");
   d.className = "aviso-offline";
-  d.textContent = "Sin conexión: no se puede cargar el mapa satelital de fondo. Se muestran el lote y sus capas propias.";
+  d.textContent = "Sin conexión: no se ve la foto satelital. Igual podés ver el borde del lote y sus capas.";
   el.appendChild(d);
   map.fire("sin-tiles");
 }
@@ -82,7 +82,7 @@ interface OpcionesMapa {
 export function crearMapa(el: HTMLElement, lotes: Lote[], opts: OpcionesMapa) {
   const mini = opts.modo === "mini";
   const map = L.map(el, {
-    zoomControl: !mini, dragging: !mini, scrollWheelZoom: opts.modo === "detalle" ? "center" : !mini,
+    zoomControl: false, dragging: !mini, scrollWheelZoom: opts.modo === "detalle" ? "center" : !mini,
     doubleClickZoom: !mini, boxZoom: !mini, keyboard: !mini, touchZoom: !mini, attributionControl: true,
     zoomSnap: opts.modo === "detalle" ? 0.25 : 1, zoomDelta: 0.5,
     zoomAnimation: !mini, fadeAnimation: !mini,
@@ -90,7 +90,7 @@ export function crearMapa(el: HTMLElement, lotes: Lote[], opts: OpcionesMapa) {
   map.attributionControl.setPrefix(mini ? false : '<a href="https://leafletjs.com">Leaflet</a>');
   const ind = document.createElement("div");
   ind.className = "cargando-tiles";
-  ind.textContent = "Cargando imagen satelital…";
+  ind.textContent = "Cargando la foto satelital…";
   el.appendChild(ind);
 
   const bases = capasBase();
@@ -112,13 +112,13 @@ export function crearMapa(el: HTMLElement, lotes: Lote[], opts: OpcionesMapa) {
     const relleno = opts.modo === "inicio" ? colorScore(l.score.valor) : null;
     const pol = dibujarLote(l, grupo, relleno, 0.35);
     if (!mini) {
-      pol.bindTooltip(`<strong>${esc(l.nombre)}</strong><br>${l.score.valor === null ? "Sin dato suficiente" : `Score ${l.score.valor}/100`} · ${num(l.area_ha, 1)} ha` +
-        (l.ejemplo ? `<br><span class="tt-ejemplo">EJEMPLO</span>` : ""), { sticky: true });
+      pol.bindTooltip(`<strong>${esc(l.nombre)}</strong><br>${l.score.valor === null ? "Sin dato suficiente" : `Puntaje ${l.score.valor} de 100`} · ${num(l.area_ha, 1)} ha` +
+        (l.ejemplo ? `<br><span class="tt-ejemplo">Datos de ejemplo</span>` : ""), { sticky: true });
     }
     if (opts.onClick) pol.on("click", () => opts.onClick!(l.id));
     if (opts.modo === "inicio") {
       const m = L.marker([l.centroide[1], l.centroide[0]], {
-        icon: L.divIcon({ className: "pin-lote", html: `<span style="background:${colorScore(l.score.valor)}" title="${l.score.valor === null ? "Sin dato suficiente" : ""}">${l.score.valor ?? "s/d"}</span><b>${esc(l.nombre.replace(/^Lote /, ""))}</b>`,
+        icon: L.divIcon({ className: "pin-lote", html: `<span style="background:${colorScore(l.score.valor)};color:${textoScore(l.score.valor)}" title="${l.score.valor === null ? "Sin dato suficiente" : ""}">${l.score.valor ?? "s/d"}</span><b>${esc(l.nombre.replace(/^Lote Ejemplo\s+/i, "").replace(/^Lote\s+/i, ""))}</b>`,
           iconSize: [0, 0] }),
         keyboard: true, title: l.nombre,
       }).addTo(grupo);
@@ -127,10 +127,11 @@ export function crearMapa(el: HTMLElement, lotes: Lote[], opts: OpcionesMapa) {
   }
 
   if (!mini) {
+    L.control.zoom({ position: "bottomright" }).addTo(map);
     L.control.layers(
       Object.fromEntries((Object.keys(bases) as BaseId[]).map((k) => [NOMBRES_BASE[k], bases[k]])),
-      { "Rótulos y rutas": capaRotulos },
-      { collapsed: opts.modo !== "detalle" || window.innerWidth < 700, position: "topright" },
+      { "Nombres y rutas": capaRotulos },
+      { collapsed: true, position: "topright" },
     ).addTo(map);
     L.control.scale({ imperial: false, position: "bottomleft", maxWidth: 160 }).addTo(map);
     map.on("baselayerchange", (e: L.LayersControlEvent) => {
@@ -171,18 +172,19 @@ export function agregarCapasLote(map: L.Map, l: Lote, el: HTMLElement, inicial: 
   const camp = im.campania_overlays ? ` · campaña ${im.campania_overlays}` : "";
   type Def = { id: CapaId; nombre: string; archivo?: string | null; leyenda: string };
   const todas: Def[] = [
-    { id: "ninguna", nombre: "Solo imagen satelital", leyenda: "" },
-    { id: "ndvi", nombre: "NDVI (vigor)", archivo: im.overlay_ndvi,
-      leyenda: gradiente("ndvi", esc_.ndvi, `NDVI máximo${camp}`, "menos vigor", "más vigor") },
-    { id: "ndmi", nombre: "NDMI (humedad)", archivo: im.overlay_ndmi,
-      leyenda: gradiente("ndmi", esc_.ndmi, `NDMI medio${camp}`, "más seco", "más húmedo") },
-    { id: "zonas", nombre: "Zonas Alta / Media / Baja", archivo: im.overlay_zonas,
-      leyenda: `<div class="ley-t">Zonas de productividad</div>
-        <div class="ley-z"><i style="background:#1a9641"></i>Alta ${num(l.zonas.alta_pct, 0, "%")}
-        <i style="background:#fdcc8a"></i>Media ${num(l.zonas.media_pct, 0, "%")}
-        <i style="background:#d7301f"></i>Baja ${num(l.zonas.baja_pct, 0, "%")}</div>` },
-    { id: "rgb", nombre: "Color natural (Sentinel-2)", archivo: im.overlay_rgb,
-      leyenda: `<div class="ley-t">Color natural ${im.fecha_rgb ?? ""}</div>` },
+    { id: "ninguna", nombre: "Solo la foto satelital", leyenda: "" },
+    { id: "ndvi", nombre: "Vigor del cultivo (NDVI)", archivo: im.overlay_ndvi,
+      leyenda: gradiente("ndvi", esc_.ndvi, `Vigor del cultivo (NDVI)${camp}`, "menos vigor", "más vigor") },
+    { id: "ndmi", nombre: "Humedad en las plantas (NDMI)", archivo: im.overlay_ndmi,
+      leyenda: gradiente("ndmi", esc_.ndmi, `Humedad en las plantas (NDMI)${camp}`, "más seco", "más húmedo") },
+    { id: "zonas", nombre: "Zonas de manejo", archivo: im.overlay_zonas,
+      leyenda: `<div class="ley-t">Zonas de manejo</div>
+        <div class="ley-z"><span><i style="background:#1a9641"></i>Alta ${num(l.zonas.alta_pct, 0, "%")}</span>
+        <span><i style="background:#fdcc8a"></i>Media ${num(l.zonas.media_pct, 0, "%")}</span>
+        <span><i style="background:#d7301f"></i>Baja ${num(l.zonas.baja_pct, 0, "%")}</span></div>
+        <p class="ley-nota">La zona baja conviene recorrerla primero.</p>` },
+    { id: "rgb", nombre: "Color natural", archivo: im.overlay_rgb,
+      leyenda: `<div class="ley-t">Color natural ${im.fecha_rgb ?? ""}</div><p class="ley-nota">Así se veía el lote ese día.</p>` },
   ];
   const defs = todas.filter((d) => d.id === "ninguna" || d.archivo);
 
@@ -193,23 +195,29 @@ export function agregarCapasLote(map: L.Map, l: Lote, el: HTMLElement, inicial: 
   let actual: CapaId = "ninguna";
   let opacidad = 0.75;
 
-  const Ctrl = L.Control.extend({
-    onAdd() {
-      const div = L.DomUtil.create("div", "panel-capas leaflet-bar");
-      const abierto = window.innerWidth >= 700;
-      div.innerHTML = `<details ${abierto ? "open" : ""}>
-        <summary class="pc-t">Capas del lote${l.ejemplo ? ' <span class="chip-ejemplo">EJEMPLO</span>' : ""}</summary>
-        ${defs.map((d) => `<label><input type="radio" name="capa-${l.id}" value="${d.id}" ${d.id === actual ? "checked" : ""}> ${d.nombre}</label>`).join("")}
-        <label class="pc-op">Opacidad <input type="range" min="0" max="100" value="${opacidad * 100}" aria-label="Opacidad de la capa"> <output>${Math.round(opacidad * 100)}%</output></label>
-        <div class="pc-ley"></div></details>`;
-      L.DomEvent.disableClickPropagation(div);
-      L.DomEvent.disableScrollPropagation(div);
-      return div;
-    },
-  });
-  const ctrl = new Ctrl({ position: window.innerWidth < 700 ? "bottomright" : "topleft" });
-  ctrl.addTo(map);
-  const panel = ctrl.getContainer()!;
+  const panel = document.createElement("div");
+  panel.className = "panel-capas";
+  panel.innerHTML = `<details open>
+    <summary class="pc-t">Qué ver arriba del satélite${l.ejemplo ? ' <span class="chip-ejemplo">Datos de ejemplo</span>' : ""}</summary>
+    ${defs.map((d) => `<label><input type="radio" name="capa-${l.id}" value="${d.id}" ${d.id === actual ? "checked" : ""}> ${d.nombre}</label>`).join("")}
+    <label class="pc-op">Intensidad <input type="range" min="0" max="100" value="${opacidad * 100}" aria-label="Intensidad de la capa"> <output>${Math.round(opacidad * 100)}%</output></label>
+    <div class="pc-ley"></div></details>`;
+  L.DomEvent.disableClickPropagation(panel);
+  L.DomEvent.disableScrollPropagation(panel);
+  const colocar = () => {
+    if (!document.body.contains(el)) {
+      window.removeEventListener("resize", colocar);
+      window.removeEventListener("hashchange", colocar);
+      return;
+    }
+    const angosto = window.innerWidth < 760;
+    panel.classList.toggle("fuera", angosto);
+    if (angosto) el.insertAdjacentElement("afterend", panel);
+    else el.appendChild(panel);
+  };
+  colocar();
+  window.addEventListener("resize", colocar);
+  window.addEventListener("hashchange", colocar);
   const ley = panel.querySelector<HTMLElement>(".pc-ley")!;
   const rango = panel.querySelector<HTMLInputElement>("input[type=range]")!;
   const out = panel.querySelector("output")!;
@@ -246,10 +254,11 @@ function gradiente(tipo: "ndvi" | "ndmi", escala: [number, number] | undefined, 
 
 /** Mapa satelital vacío (para cargar/dibujar lotes): mismos mapas base, rótulos, escala y fallback offline. */
 export function mapaBase(el: HTMLElement, centro: [number, number] = [-33.35, -63.75], zoom = 11) {
-  const map = L.map(el, { zoomSnap: 1 }).setView(centro, zoom);
+  const map = L.map(el, { zoomSnap: 1, zoomControl: false }).setView(centro, zoom);
+  L.control.zoom({ position: "bottomright" }).addTo(map);
   const ind = document.createElement("div");
   ind.className = "cargando-tiles";
-  ind.textContent = "Cargando imagen satelital…";
+  ind.textContent = "Cargando la foto satelital…";
   el.appendChild(ind);
   const bases = capasBase();
   Object.values(bases).forEach((b) => vigilarBase(b, el, map));
@@ -258,7 +267,7 @@ export function mapaBase(el: HTMLElement, centro: [number, number] = [-33.35, -6
   else { ind.remove(); bases.ninguno.addTo(map); setTimeout(() => avisoOffline(el, map), 0); }
   L.control.layers(
     Object.fromEntries((Object.keys(bases) as BaseId[]).map((k) => [NOMBRES_BASE[k], bases[k]])),
-    { "Rótulos y rutas": capaRotulos }, { collapsed: true, position: "topright" },
+    { "Nombres y rutas": capaRotulos }, { collapsed: true, position: "topright" },
   ).addTo(map);
   L.control.scale({ imperial: false, position: "bottomleft", maxWidth: 160 }).addTo(map);
   setTimeout(() => map.invalidateSize(), 60);

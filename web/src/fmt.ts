@@ -25,6 +25,24 @@ export function colorScore(s: number | null): string {
   return "#d7191c";
 }
 
+/** Texto sobre el color del score: en los tonos claros el blanco no se lee al sol. */
+export function textoScore(s: number | null): string {
+  if (s !== null && s >= 45 && s < 75) return "#111713";
+  return "#fffdf8";
+}
+
+/**
+ * Lectura en criollo de las mismas franjas que ya pinta el mapa (75 / 60 / 45).
+ * No es un dato nuevo: describe el número que ya calculó el pipeline.
+ */
+export function fraseScore(v: number | null): string {
+  if (v === null) return "No alcanza con los datos para resumir el lote en un número.";
+  if (v >= 75) return "Número alto: el lote se ve favorable para alquilar y sembrar maní.";
+  if (v >= 60) return "Número medio-alto: mirá el detalle antes de decidir.";
+  if (v >= 45) return "Número intermedio: hay puntos flojos para revisar.";
+  return "Número bajo: revisá los riesgos antes de alquilar.";
+}
+
 export function esc(s: string): string {
   return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
 }
