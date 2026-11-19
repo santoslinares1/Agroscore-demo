@@ -44,7 +44,7 @@ export function vistaCargar(app: HTMLElement, d: Datos, recargar: () => Promise<
           <div class="botones"><button class="btn" type="button" id="dibujar">Dibujar polígono</button>
             <button class="btn sec" type="button" id="editar" disabled>Editar vértices</button>
             <button class="btn sec" type="button" id="limpiar" disabled>Borrar</button></div>
-          <small>Hacé clic en cada esquina del lote y cerralo tocando el primer punto. Usá «Topográfico» o «Relieve» en el selector de capas si querés otro fondo.</small></div>
+          <small>Tocá cada esquina del lote y cerralo en el primer punto. Si querés otro fondo, abrí las capas del mapa y elegí caminos o relieve.</small></div>
         <form class="card paso" id="form"><h2>3. Datos del lote</h2>
           <label>Nombre del lote <span class="req">*</span><input name="nombre" required maxlength="80" placeholder="Ej.: Lote 4 – La Esperanza"></label>
           <label>Propietario / establecimiento <small>(opcional)</small><input name="propietario" maxlength="80" placeholder="Ej.: Est. La Esperanza, Alejandro Roca"></label>

@@ -1,7 +1,7 @@
 import type { Datos } from "../data";
 import { textoErrorLote, url } from "../data";
 import { crearMapa } from "../mapa";
-import { colorScore, esc, num, scoreTxt } from "../fmt";
+import { colorScore, esc, fraseScore, num, scoreTxt, textoScore } from "../fmt";
 import { lineaTiempo } from "./detalle";
 import { etiquetaComp, INDICE_VIGOR, nivel, rotacionSinDato, ultimoManiTxt, vigorBase } from "../textos";
 import type { Lote } from "../types";
@@ -30,11 +30,13 @@ export function vistaComparar(app: HTMLElement, d: Datos, idsParam: string | nul
   const comps = sel[0]?.score.componentes ?? [];
   const vigorUnico = new Set(sel.map((l) => vigorBase(l.score))).size === 1;
   const titulo = (c: (typeof comps)[number]) =>
-    c.clave === "vigor_historico" && !vigorUnico ? "Vigor histórico" : etiquetaComp(c, sel[0].score);
+    c.clave === "vigor_historico" && !vigorUnico ? "Vigor del cultivo" : etiquetaComp(c, sel[0].score);
 
   const filas: Fila[] = [
     { t: "Ubicación", html: (l) => `<div class="mapa mini" data-mini="${l.id}"></div>` },
-    { t: "Score", html: (l) => `<span class="badge-score ${l.score.valor === null ? "sin-score" : ""}" style="background:${colorScore(l.score.valor)}">${scoreTxt(l.score.valor)}</span>`
+    { t: "El número", html: (l) => `<span class="badge-score ${l.score.valor === null ? "sin-score" : ""}" style="background:${colorScore(l.score.valor)};color:${textoScore(l.score.valor)}">${scoreTxt(l.score.valor)}</span>`
+        + `<div class="frase-score">${esc(fraseScore(l.score.valor))}</div>`
+        + (l.ejemplo ? `<span class="chip-ejemplo">Datos de ejemplo</span>` : "")
         + (l.score.valor === null && l.score.motivo_sin_score ? `<br><small>${esc(l.score.motivo_sin_score)}</small>` : l.score.reponderado ? `<br><small>parcial (${num((l.score.cobertura ?? 1) * 100, 0)} % del peso)</small>` : ""),
       valor: (l) => l.score.valor, mejor: "max" },
     ...comps.map((c, i): Fila => ({
@@ -54,14 +56,14 @@ export function vistaComparar(app: HTMLElement, d: Datos, idsParam: string | nul
     { t: "Veces con maní en las últimas 5", html: (l) => `${l.rotacion.veces_mani_ultimas_5}`,
       valor: (l) => l.rotacion.veces_mani_ultimas_5, mejor: "min" },
     { t: "Campañas", html: (l) => lineaTiempo(l, true) },
-    { t: "NDVI máx. promedio", html: (l) => num(ndviProm(l)), valor: ndviProm, mejor: "max" },
-    { t: "Zonas Alta / Media / Baja", html: (l) => `${num(l.zonas.alta_pct, 0)} / ${num(l.zonas.media_pct, 0)} / ${num(l.zonas.baja_pct, 0)} %` },
-    { t: "Máx. anegado", html: (l) => num(l.agua.max_ha_anegadas, 1, " ha"), valor: (l) => l.agua.max_ha_anegadas, mejor: "min" },
+    { t: "Vigor máximo promedio (NDVI)", html: (l) => num(ndviProm(l)), valor: ndviProm, mejor: "max" },
+    { t: "Zonas alta / media / baja", html: (l) => `${num(l.zonas.alta_pct, 0)} / ${num(l.zonas.media_pct, 0)} / ${num(l.zonas.baja_pct, 0)} %` },
+    { t: "Máximo con agua", html: (l) => num(l.agua.max_ha_anegadas, 1, " ha"), valor: (l) => l.agua.max_ha_anegadas, mejor: "min" },
     { t: "Frecuencia de agua", html: (l) => num(l.agua.frecuencia_pct, 1, " %"), valor: (l) => l.agua.frecuencia_pct, mejor: "min" },
     { t: "Arena / arcilla", html: (l) => `${num(l.suelo.arena_pct, 1)} / ${num(l.suelo.arcilla_pct, 1)} %` },
     { t: "Lluvia media anual", html: (l) => num(l.clima.pp_anual_mm, 0, " mm") },
     { t: "Zonas", html: (l) => `<img class="img-comp" src="${url(l.id, l.zonas.png)}" alt="Zonas de ${esc(l.nombre)}" loading="lazy">` },
-    { t: "Informe", html: (l) => `<a class="btn chico" href="${url(l.id, l.pdf)}" download="${l.id}_informe.pdf">PDF</a> <a href="#/lote/${l.id}">Ver detalle</a>` },
+    { t: "Informe", html: (l) => `<a class="btn" href="#/lote/${l.id}">Ver el lote</a> <a class="btn sec" href="${url(l.id, l.pdf)}" download="${l.id}_informe.pdf">PDF</a>` },
   ];
 
   const mejorIdx = (f: Fila): Set<number> => {
@@ -74,17 +76,18 @@ export function vistaComparar(app: HTMLElement, d: Datos, idsParam: string | nul
   };
 
   app.innerHTML = `
-    <nav class="migas"><a href="#/">← Todos los lotes</a></nav>
+    <nav class="migas"><a href="#/">← Volver al mapa</a></nav>
     <h1>Comparar lotes</h1>
+    <p class="lead">Elegí 2 o 3 lotes y mirá el mismo dato en cada uno. El resaltado es el mejor valor de esa fila.</p>
     ${avisoRotos}
     <div class="selector">${todos.map((l) => `
-      <label><input type="checkbox" value="${l.id}" ${ids.includes(l.id) ? "checked" : ""}> ${esc(l.nombre)}
-      ${l.ejemplo ? `<span class="chip-ejemplo">EJEMPLO</span>` : ""}</label>`).join("")}
+      <label><input type="checkbox" value="${l.id}" ${ids.includes(l.id) ? "checked" : ""}> <span>${esc(l.nombre)}</span>
+      ${l.ejemplo ? `<span class="chip-ejemplo">Datos de ejemplo</span>` : ""}</label>`).join("")}
       <small>Elegí 2 o 3 lotes. <span class="mejor-demo">Resaltado</span> = mejor valor de la fila.</small></div>
     <div class="tabla-wrap"><table class="comp-tabla">
-      <thead><tr><th></th>${sel.map((l) => `<th>${esc(l.nombre)}<br><small>${esc(l.localidad)} · ${num(l.area_ha, 1)} ha</small></th>`).join("")}</tr></thead>
+      <thead><tr><th></th>${sel.map((l) => `<th>${esc(l.nombre)}<br><small>${esc(l.localidad)} · ${num(l.area_ha, 1)} ha${l.ejemplo ? " · datos de ejemplo" : ""}</small></th>`).join("")}</tr></thead>
       <tbody>${filas.map((f) => { const b = mejorIdx(f); return `<tr><th>${esc(f.t)}</th>${sel.map((l, i) =>
-        `<td class="${b.has(i) ? "mejor" : ""}">${f.html(l)}</td>`).join("")}</tr>`; }).join("")}</tbody>
+        `<td data-lote="${esc(l.nombre)}" class="${b.has(i) ? "mejor" : ""}">${f.html(l)}</td>`).join("")}</tr>`; }).join("")}</tbody>
     </table></div>`;
 
   app.querySelectorAll<HTMLElement>("[data-mini]").forEach((el) => {

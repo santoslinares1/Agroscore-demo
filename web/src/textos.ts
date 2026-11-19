@@ -18,9 +18,13 @@ export const vigorBase = (s: Score): VigorBase | null =>
 export function etiquetaComp(c: Componente, s: Score): string {
   if (c.clave === "vigor_historico") {
     const vb = vigorBase(s);
-    return vb ? `Vigor histórico (${INDICE_VIGOR[vb]})` : "Vigor histórico";
+    return vb ? `Vigor del cultivo (${INDICE_VIGOR[vb]})` : "Vigor del cultivo";
   }
-  return c.etiqueta ?? c.clave;
+  if (c.clave === "riesgo_hidrico") return "Riesgo de anegamiento";
+  if (c.clave === "estabilidad") return "Estabilidad entre campañas";
+  if (c.clave === "rotacion_mani") return "Rotación de maní";
+  if (c.clave === "suelo") return c.etiqueta ?? "Suelo";
+  return (c.etiqueta ?? c.clave).replaceAll("_", " ");
 }
 
 /** Explicación del componente para un lote (la del vigor depende del índice usado). */

@@ -33,29 +33,29 @@ describe("etiqueta del vigor según score.vigor_base", () => {
     for (const id of ["ejemplo_roca_norte", "ejemplo_roca_sur", "ejemplo_rio_cuarto_este"]) {
       const l = base(id);
       expect(l.score.vigor_base, id).toBe("ndvi");
-      expect(etiquetaComp(vigor(l), l.score)).toBe("Vigor histórico (NDVI)");
+      expect(etiquetaComp(vigor(l), l.score)).toBe("Vigor del cultivo (NDVI)");
     }
   });
 
   it("EVI aunque la etiqueta guardada diga NDVI (JSON anterior inconsistente)", () => {
     const l = conBase(base(), "evi", "Vigor histórico (NDVI)");
-    expect(etiquetaComp(vigor(l), l.score)).toBe("Vigor histórico (EVI)");
+    expect(etiquetaComp(vigor(l), l.score)).toBe("Vigor del cultivo (EVI)");
     expect(explicacion("vigor_historico", l.score)!.que).toContain("EVI");
     const html = bloqueScore(l);
-    expect(html).toContain("Vigor histórico (EVI)");
-    expect(html).not.toContain("Vigor histórico (NDVI)");
+    expect(html).toContain("Vigor del cultivo (EVI)");
+    expect(html).not.toContain("Vigor del cultivo (NDVI)");
   });
 
   it("NDVI: la explicación no habla de EVI", () => {
     const l = base();
     expect(explicacion("vigor_historico", l.score)!.que).toContain("NDVI");
     expect(explicacion("vigor_historico", l.score)!.que).not.toContain("EVI");
-    expect(bloqueScore(l)).toContain("Vigor histórico (NDVI)");
+    expect(bloqueScore(l)).toContain("Vigor del cultivo (NDVI)");
   });
 
   it("sin vigor_base (JSON viejo): rótulo genérico, sin afirmar un índice", () => {
     const l = conBase(base(), undefined);
-    expect(etiquetaComp(vigor(l), l.score)).toBe("Vigor histórico");
+    expect(etiquetaComp(vigor(l), l.score)).toBe("Vigor del cultivo");
     expect(etiquetaComp({ clave: "suelo", etiqueta: "Suelo", valor: 1, peso: 0.15 }, l.score)).toBe("Suelo");
   });
 });
@@ -65,7 +65,7 @@ describe("Cómo funciona y Comparar coherentes con los lotes mostrados", () => {
     const el = montar();
     vistaComo(el, datos([base("ejemplo_roca_norte"), base("ejemplo_roca_sur")]));
     const fila = [...el.querySelectorAll("table.como tbody tr")].find((tr) => tr.textContent!.includes("Vigor"))!;
-    expect(fila.querySelector("th")!.textContent).toBe("Vigor histórico (NDVI)");
+    expect(fila.querySelector("th")!.textContent).toBe("Vigor del cultivo (NDVI)");
     expect(fila.textContent).not.toContain("EVI");
     expect(el.textContent).toContain("versión 1.2.0");
     expect(el.textContent).toContain("Confianza alta");
@@ -76,7 +76,7 @@ describe("Cómo funciona y Comparar coherentes con los lotes mostrados", () => {
     const a = base("ejemplo_roca_norte"), b = conBase(base("ejemplo_roca_sur"), "evi");
     vistaComo(el, datos([a, b]));
     const fila = [...el.querySelectorAll("table.como tbody tr")].find((tr) => tr.textContent!.includes("Vigor"))!;
-    expect(fila.querySelector("th")!.textContent).toBe("Vigor histórico");
+    expect(fila.querySelector("th")!.textContent).toBe("Vigor del cultivo");
     expect(fila.textContent).toContain("1 con NDVI");
     expect(fila.textContent).toContain("1 con EVI");
 
